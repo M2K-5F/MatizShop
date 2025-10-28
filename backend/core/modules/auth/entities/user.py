@@ -1,7 +1,7 @@
 from dataclasses import dataclass, fields, replace
 
-from core.entities.entity import Entity
-from core.interfaces.password_hasher import PasswordHasher
+from core.base.entities.entity import Entity
+from core.modules.auth.interfaces.password_hasher import PasswordHasher
 
 
 @dataclass
@@ -12,13 +12,15 @@ class User(Entity):
     phone_number: str = ''
 
     @classmethod
-    def create(cls, login: str, username: str, password: str, hasher: PasswordHasher):
+    def create(cls, username: str, password: str, email_address: str, phone_number: int, hasher: PasswordHasher):
         password_hash = hasher.hash(password)
+        
         return replace(
             cls.base_create(),
-            login = login.strip(),
             username = username.strip(),
-            _password_hash = password_hash
+            email_address = email_address.strip(),
+            phone_number = phone_number,
+            password_hash = password_hash,
         )
     
 

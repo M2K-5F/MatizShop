@@ -1,4 +1,4 @@
-from core.interfaces.password_hasher import PasswordHasher
+from core.modules.auth.interfaces.password_hasher import PasswordHasher
 from bcrypt import checkpw, gensalt, hashpw
 
 class PasswordHasherImpl(PasswordHasher):

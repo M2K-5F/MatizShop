@@ -7,6 +7,9 @@ setup(
     package_dir={"": "../backend"},
     install_requires = [
         "bcrypt==3.2.0",
-        "peewee==3.17.9"
+        "peewee==3.17.9",
+        "fastapi==0.115.11",
+        "pyjwt==2.9.0",
+        "uvicorn==0.33.0",
     ]
 )
