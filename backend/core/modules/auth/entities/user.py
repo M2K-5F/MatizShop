@@ -1,4 +1,5 @@
-from dataclasses import dataclass, fields, replace
+from dataclasses import dataclass, field, fields, replace
+from typing import List, Literal
 
 from core.base.entities.entity import Entity
 from core.modules.auth.interfaces.password_hasher import PasswordHasher
@@ -6,6 +7,7 @@ from core.modules.auth.interfaces.password_hasher import PasswordHasher
 
 @dataclass
 class User(Entity):
+    roles: List[Literal['ADMIN', 'CUSTOMER']] = field(default_factory=list)
     username: str = ''
     password_hash: str = ''
     email_address: str = ''
@@ -21,6 +23,7 @@ class User(Entity):
             email_address = email_address.strip(),
             phone_number = phone_number,
             password_hash = password_hash,
+            roles = ['CUSTOMER']
         )
     
 
@@ -33,8 +36,3 @@ class User(Entity):
 
     def change_username(self, new_username: str): 
         self.username = new_username
-
-
-def to_model():
-    for field in fields(User):
-        print(field)

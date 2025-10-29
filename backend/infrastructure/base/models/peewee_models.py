@@ -20,7 +20,7 @@ class User(Table):
     username = CharField(max_length=64)
     password_hash = CharField()
     email_address = CharField(max_length=128)
-    phone_number = CharField(max_length=9)
+    phone_number = CharField(max_length=9, unique=True)
 
 
 class Role(Table):

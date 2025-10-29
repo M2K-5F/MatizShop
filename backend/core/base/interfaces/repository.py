@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from sre_constants import ANY
+from types import MethodType
 from typing import Any, Dict, List, Literal, Optional, Protocol, Tuple, TypeVar, Generic, Type, overload
 
 TEntity = TypeVar('TEntity')
@@ -6,6 +7,8 @@ TEntity = TypeVar('TEntity')
 class Repository(Generic[TEntity], Protocol):
     """Базовый репозиторий с общей логикой"""
     
+    def transaction(self) -> Any: ...
+
     @overload
     def get_by_id(self, id: int, auto_error: Literal[True]) -> TEntity: ...
 
