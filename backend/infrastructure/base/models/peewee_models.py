@@ -10,7 +10,7 @@ database = SqliteDatabase("SQLite3Database.db")
 
 class Table(Model):
     id = AutoField()
-    created_at = DateTimeField(default=datetime.now())
+    created_at = DateTimeField(default=datetime.now().isoformat())
 
     class Meta:
         database = database

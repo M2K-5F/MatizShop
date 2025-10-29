@@ -1,14 +1,11 @@
-from dataclasses import fields
-from core.modules.auth.entities import role
 from core.modules.auth.entities.user import User
 from core.modules.auth.interfaces.password_hasher import PasswordHasher
 from core.modules.auth.interfaces.role_repository import RoleRepository
 from core.modules.auth.interfaces.user_repository import UserRepository
 from core.modules.auth.interfaces.user_role_repository import UserRoleRepository
-from infrastructure.base.models.peewee_models import database
 
 
-class AuthService:
+class AuthService():
     def __init__(
             self, 
             user_repo: UserRepository, 
@@ -23,7 +20,6 @@ class AuthService:
 
 
     def register(self, phone_number: int, username: str, password: str, email_address: str):
-        with self.user.transaction():
             user_entity = User.create(
                 username, password,
                 email_address, phone_number, 
@@ -51,7 +47,6 @@ class AuthService:
 
 
     def get_user(self, phone_number: int):
-        with self.user.transaction():
             user = self.user.get_or_none(
                 True,
                 phone_number = phone_number
@@ -62,8 +57,19 @@ class AuthService:
             return user
 
 
+    def get_user_by_id(self, id: int):
+        user = self.user.get_by_id(
+            id,
+            True,
+        )
+
+        roles = self.user.get_user_roles(user)
+        user.roles = roles
+        return user
+
+
+
     def verify_password(self, phone_number: int, password: str):
-        with self.user.transaction():
             user = self.user.get_or_none(
                 True, 
                 phone_number = phone_number

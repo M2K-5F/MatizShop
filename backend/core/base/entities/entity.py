@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -15,3 +15,10 @@ class Entity:
             created_at = None,
             **kwargs
         )
+    
+
+    def to_dict(self) -> Dict[str, Any]:
+        field_dict = {}
+        for field in fields(self):
+            field_dict[field.name] = getattr(self, field.name)
+        return field_dict
