@@ -17,8 +17,14 @@ class Entity:
         )
     
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, nesting: int = 0) -> Dict[str, Any]:
         field_dict = {}
         for field in fields(self):
-            field_dict[field.name] = getattr(self, field.name)
+            value = getattr(self, field.name)
+            if isinstance(value, Entity):
+                if nesting:
+                    value = value.to_dict(nesting - 1)
+                else:
+                    value = value.id
+            field_dict[field.name] = value
         return field_dict

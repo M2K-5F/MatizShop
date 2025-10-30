@@ -30,7 +30,6 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         return database.atomic
 
     def _convert_filters(self, **filters) -> Dict[str, Any]:
-        """Преобразовать фильтры, где значения могут быть сущностями, в модели"""
         converted_filters = {}
         for field, value in filters.items():
             if isinstance(value, Entity):
@@ -44,14 +43,13 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
 
 
     def _to_entity(self, model: TModel):
-        """Автоматическое преобразование модели Peewee в dataclass сущность"""
         model_data = {}
         for key in(getattr(model, '_meta').fields.keys()):
             model_data[key] = getattr(model, key)
         return(self.entity(**model_data))
     
+    
     def _to_model(self, entity: TEntity) -> TModel:
-        """Автоматическое преобразование dataclass сущности в модель Peewee"""
         entity_data = asdict(entity)
         
         model_data = {}

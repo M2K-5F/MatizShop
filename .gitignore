@@ -229,3 +229,4 @@ __pycache__/
 *.pem
 serts/
 *.db
+issues.txt

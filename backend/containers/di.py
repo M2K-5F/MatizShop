@@ -11,7 +11,6 @@ from peewee import SqliteDatabase
 from infrastructure.base.models.peewee_models import database
 
 def singleton(func):
-    """Декоратор для singleton сервисов"""
     @lru_cache(maxsize=None)
     def wrapper(instance):
         return func(instance)
@@ -30,15 +29,17 @@ class DIContainer():
             self.get_hasher()
         )
 
+
     @singleton
     def get_hasher(self):
         return PasswordHasherImpl()
-    
+
 
     @singleton
     def get_jwt_tokenizer(self):
         return JWTTokenizer(AuthJWT())
     
+
     @property
     def transaction(self):
         return self._database.atomic()
