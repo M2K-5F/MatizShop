@@ -1,3 +1,4 @@
+from re import A
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -6,10 +7,13 @@ from containers import di
 from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
 from restapi.modules.auth.controllers import auth_router
+from restapi.modules.flight.controllers import flight_router
 from containers.di import di_container
 
 app = FastAPI()
 app.include_router(auth_router)
+app.include_router(flight_router)
+
 app.add_middleware(
         CORSMiddleware,
         allow_origins=['127.0.0.1:8000'],
@@ -28,6 +32,16 @@ async def value_error_exception_handler(request: Request, exc: ValueError):
         content={
             "detail": str(exc),
             "type": "value_error"
+        }
+    )
+
+@app.exception_handler(AttributeError)
+async def attrubute_exception_handler(request: Request, exc: AttributeError):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": str(exc),
+            "type": "attribute_error"
         }
     )
 

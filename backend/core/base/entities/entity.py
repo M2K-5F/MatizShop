@@ -26,5 +26,6 @@ class Entity:
                     value = value.to_dict(nesting - 1)
                 else:
                     value = value.id
-            field_dict[field.name] = value
+            else:
+                field_dict[field.name] = value
         return field_dict

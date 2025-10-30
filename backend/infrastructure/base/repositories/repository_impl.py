@@ -1,9 +1,10 @@
-from dataclasses import asdict, fields
-from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, overload
+from dataclasses import Field, asdict, field, fields
+from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, get_type_hints, overload
+from webbrowser import get
 from core.base.entities.entity import Entity
 from core.base.interfaces.repository import Repository
 from infrastructure.base.models.peewee_models import Table, User, database
-from peewee import DoesNotExist, ForeignKeyField
+from peewee import DoesNotExist, ForeignKeyField, Model
 
 TModel = TypeVar('TModel', bound=Table)
 TEntity = TypeVar('TEntity', bound=Entity)
@@ -45,7 +46,11 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
     def _to_entity(self, model: TModel):
         model_data = {}
         for key in(getattr(model, '_meta').fields.keys()):
-            model_data[key] = getattr(model, key)
+            value = getattr(model, key)
+            if isinstance(value, Table):
+                model_data[key] = value.id
+            else:
+                model_data[key] = value
         return(self.entity(**model_data))
     
     
@@ -183,3 +188,29 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             entity.id = getattr(model, 'id')
             
         return self._to_entity(model)
+    
+
+    def add_fields(self, entity: Entity):
+        model: TModel = self.model.get_by_id(entity.id)
+        data = {}
+        annotations = get_type_hints(self.entity)
+        for field_name in getattr(self.model, '_meta').fields.keys():
+            value = getattr(model, field_name)
+            annotated_cls = annotations[field_name]
+            if isinstance(value, Table):
+                data[field_name] = self._to_entity_by_cls(value, annotated_cls)
+            else:
+                data[field_name] = value
+        return self.entity(**data)
+
+
+    def _to_entity_by_cls(self, model: Table, entity_cls):
+        model_data = {}
+        for key in(getattr(model, '_meta').fields.keys()):
+            value = getattr(model, key)
+            if isinstance(value, Table):
+                model_data[key] = value.id
+            else:
+                model_data[key] = value
+        return(entity_cls(**model_data))
+

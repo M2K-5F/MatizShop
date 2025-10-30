@@ -1,5 +1,3 @@
-from sre_constants import ANY
-from types import MethodType
 from typing import Any, Dict, List, Literal, Optional, Protocol, Tuple, TypeVar, Generic, Type, overload
 
 TEntity = TypeVar('TEntity')
@@ -49,3 +47,5 @@ class Repository(Generic[TEntity], Protocol):
 
 
     def save(self, entity: TEntity) -> TEntity: ...
+
+    def add_fields(self, entity: TEntity) -> TEntity: ...

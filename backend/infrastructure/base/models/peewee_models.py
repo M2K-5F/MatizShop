@@ -44,7 +44,7 @@ class Airport(Table):
 
 
 class FlightLocation(Table):
-    airport_tag = ForeignKeyField(City, field=City.tag)
+    airport_tag = ForeignKeyField(Airport, field=Airport.code)
     time = CharField()
     date = CharField()
 
@@ -66,6 +66,7 @@ class UserFlight(Table):
 
 @database.atomic()
 def main():
+    database.register_function(lambda value: print(value), 'lower')
     database.create_tables([
         User, Role, UserRole, 
         City, Airport, Flight, 

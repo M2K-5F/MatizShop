@@ -6,5 +6,5 @@ import MyTicketsPage from "@/pages/MyTicketsPage"
 import SeatSelectionPage from "@/pages/SeatSelectPage"
 
 createRoot(document.getElementById('root')!).render(
-    <SeatSelectionPage />
+    <Homepage />
 )
