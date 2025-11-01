@@ -34,3 +34,8 @@ class FlightService(Service):
     def get_cities_by_query(self, query: str):
         cities = self.city_repo.get_cities_by_query(query)
         return cities
+    
+
+    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str):
+        flights = self.flight_repo.get_flights_by_cities(departure_city_tag, arrival_city_tag)
+        return flights

@@ -27,7 +27,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         cookie_key = 'access_token'
         token = request.cookies.get(cookie_key)
-
+        print(token)
 
         credentials_exception = JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,

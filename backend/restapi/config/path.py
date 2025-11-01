@@ -1,7 +1,7 @@
 from typing import List
 
 
-API_PREFIX = ''
+API_PREFIX = '/api'
 
 PUBLIC_PATHS: List[str] = [
     API_PREFIX + "/auth/login", 

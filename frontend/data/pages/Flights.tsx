@@ -5,59 +5,45 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Filter, Plane, ArrowRightLeft, Clock, Users } from "lucide-react"
+import { use, useEffect, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { getApiService } from "@/App"
+import { Flight } from "@/interfaces/interfaces"
+import { Loader } from "@/components/ui/loader"
 
 export default function FlightsPage() {
-  const flights = [
-    {
-      id: 1,
-      airline: "SkyWings Airlines",
-      flightNumber: "SW 245",
-      departure: { city: "Москва (SVO)", time: "08:30", date: "15 дек" },
-      arrival: { city: "Стамбул (IST)", time: "11:45", date: "15 дек" },
-      duration: "3ч 15м",
-      price: 15600,
-      type: "Эконом",
-      seats: 24
-    },
-    {
-      id: 2,
-      airline: "SkyWings Airlines",
-      flightNumber: "SW 247",
-      departure: { city: "Москва (SVO)", time: "14:20", date: "15 дек" },
-      arrival: { city: "Стамбул (IST)", time: "17:35", date: "15 дек" },
-      duration: "3ч 15м",
-      price: 14200,
-      type: "Эконом",
-      seats: 12
-    },
-    {
-      id: 3,
-      airline: "SkyWings Premium",
-      flightNumber: "SW 249",
-      departure: { city: "Москва (SVO)", time: "19:45", date: "15 дек" },
-      arrival: { city: "Стамбул (IST)", time: "23:00", date: "15 дек" },
-      duration: "3ч 15м",
-      price: 23400,
-      type: "Бизнес",
-      seats: 8
+  const [flights, setFlights] = useState<Flight[]>([])
+  const [params, setParams] = useSearchParams()
+  const departure = params.get('departure')
+  const arrival = params.get('arrival')
+  const navigate = useNavigate()
+  const service = use(getApiService)
+
+  useEffect(() => {
+    if (!arrival || !departure) {
+      navigate('/')
+    } else {
+      service?.getFlightsByCities(departure, arrival, '')
+      .then(flights => setFlights(flights))
     }
-  ]
+  }, [arrival, departure])
+
+  if (!flights.length) return <Loader variant='success' />
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-blue-50">
       <div 
         className="relative h-64 bg-cover bg-center"
-        style={{ backgroundImage: "url('/airplane-search.jpg')" }}
+        style={{ backgroundImage: "url('/images/flights_plane.webp')" }}
       >
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
           <div className="max-w-4xl text-white">
             <h1 className="text-4xl font-bold mb-4">
-              Рейсы в Стамбул
+              Рейсы в {flights[0].arrival.airport_tag.city.name}
             </h1>
             <p className="text-lg">
-              Москва → Стамбул • 15 декабря • 1 пассажир
+              {flights[0].departure.airport_tag.city.name} → {flights[0].arrival.airport_tag.city.name} • 1 пассажир
             </p>
           </div>
         </div>
@@ -75,7 +61,6 @@ export default function FlightsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Price Filter */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Цена, ₽</Label>
                   <div className="space-y-2">
@@ -87,7 +72,6 @@ export default function FlightsPage() {
                   </div>
                 </div>
 
-                {/* Airlines Filter */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Авиакомпании</Label>
                   <div className="space-y-2">
@@ -100,7 +84,6 @@ export default function FlightsPage() {
                   </div>
                 </div>
 
-                {/* Flight Type Filter */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Класс</Label>
                   <div className="space-y-2">
@@ -113,7 +96,6 @@ export default function FlightsPage() {
                   </div>
                 </div>
 
-                {/* Time Filter */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Время вылета</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -132,12 +114,10 @@ export default function FlightsPage() {
             </Card>
           </div>
 
-          {/* Flight Results */}
           <div className="lg:col-span-3">
-            {/* Summary Bar */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Найдено {flights.length} рейсов</h2>
+                <h2 className="text-2xl font-bold">Найдено рейсов: {flights.length} </h2>
                 <p className="text-gray-600">Сортировка по: рекомендованным</p>
               </div>
               <Select defaultValue="recommended">
@@ -167,8 +147,8 @@ export default function FlightsPage() {
                             <Plane className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <h3 className="font-semibold">{flight.airline}</h3>
-                            <p className="text-sm text-gray-600">{flight.flightNumber}</p>
+                            <h3 className="font-semibold">AeroLine</h3>
+                            <p className="text-sm text-gray-600">{flight.tag}</p>
                           </div>
                           <Badge variant={flight.type === "Бизнес" ? "default" : "secondary"}>
                             {flight.type}
@@ -179,7 +159,7 @@ export default function FlightsPage() {
                           {/* Departure */}
                           <div className="text-center">
                             <div className="text-2xl font-bold">{flight.departure.time}</div>
-                            <div className="text-sm text-gray-600">{flight.departure.city}</div>
+                            <div className="text-sm text-gray-600">{flight.departure.airport_tag.city.name}</div>
                             <div className="text-xs text-gray-500">{flight.departure.date}</div>
                           </div>
 
@@ -200,7 +180,7 @@ export default function FlightsPage() {
                           {/* Arrival */}
                           <div className="text-center">
                             <div className="text-2xl font-bold">{flight.arrival.time}</div>
-                            <div className="text-sm text-gray-600">{flight.arrival.city}</div>
+                            <div className="text-sm text-gray-600">{flight.arrival.airport_tag.city.name}</div>
                             <div className="text-xs text-gray-500">{flight.arrival.date}</div>
                           </div>
                         </div>
@@ -214,7 +194,7 @@ export default function FlightsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-end">
                           <Users className="w-4 h-4" />
-                          <span>Осталось {flight.seats} мест</span>
+                          <span>Осталось {flight.seats_count} мест</span>
                         </div>
                         <Button className="bg-blue-600 hover:bg-blue-700">
                           Выбрать
@@ -228,8 +208,8 @@ export default function FlightsPage() {
 
             {/* Load More */}
             <div className="text-center mt-8">
-              <Button variant="outline" className="px-8">
-                Показать еще рейсы
+              <Button onClick={() => {navigate('/')}} variant="outline" className="px-8">
+                На главную
               </Button>
             </div>
           </div>

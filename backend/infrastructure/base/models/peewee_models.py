@@ -1,5 +1,5 @@
 from datetime import datetime
-from peewee import Model, AutoField, DateTimeField, SqliteDatabase, CharField, IntegerField, ForeignKeyField, BooleanField
+from peewee import Model, AutoField, DateTimeField, SqliteDatabase, CharField, IntegerField, ForeignKeyField, BooleanField, DateField
 
 from core.config import city_config
 from core.config.ticket_config import flights_data
@@ -46,7 +46,7 @@ class Airport(Table):
 class FlightLocation(Table):
     airport_tag = ForeignKeyField(Airport, field=Airport.code)
     time = CharField()
-    date = CharField()
+    date = DateField()
 
 
 class Flight(Table):
