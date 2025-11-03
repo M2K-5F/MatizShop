@@ -190,7 +190,7 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         return self._to_entity(model)
     
 
-    def add_fields(self, entity: Entity):
+    def add_fields(self, entity: TEntity):
         model: TModel = self.model.get_by_id(entity.id)
         data = {}
         annotations = get_type_hints(self.entity)
@@ -198,10 +198,11 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             value = getattr(model, field_name)
             annotated_cls = annotations[field_name]
             if isinstance(value, Table):
-                data[field_name] = self._to_entity_by_cls(value, annotated_cls)
+                setattr(entity, field_name, self._to_entity_by_cls(value, annotated_cls))
             else:
-                data[field_name] = value
-        return self.entity(**data)
+                setattr(entity, field_name, value)
+
+        return entity
 
 
     def _to_entity_by_cls(self, model: Table, entity_cls):

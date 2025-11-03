@@ -1,7 +1,8 @@
 import { UserStore, useUserStore } from "@/stores/useUserStore";
 import { i } from "node_modules/shadcn/dist/index-8c784f6a";
 import { ApiEndpoints } from "./path.config";
-import { City, Flight } from "@/interfaces/interfaces";
+import { AuthForm, City, Flight, RegistrationForm, User } from "@/interfaces/interfaces";
+import { TheaterIcon } from "lucide-react";
 
 export class ApiService {
     userStore: UserStore
@@ -42,8 +43,44 @@ export class ApiService {
                         this.userStore.setForbidden()
                         throw Error("HTTP:403 Forbidden")
                     }
+                    throw Error(response.status.toString())
                 }
             })
+    }
+
+    getUsersMe(): Promise<User> {
+        return this.query(
+            ApiEndpoints.getUserMe,
+        )
+    }
+
+    logout(): Promise<Record<string, string>> {
+        return this.query(
+            ApiEndpoints.logout,
+            {
+                method: 'delete'
+            }
+        )
+    }
+
+    login(user: AuthForm): Promise<User> {
+        return this.query(
+            ApiEndpoints.login,
+            {
+                method: 'post',
+                body: JSON.stringify(user)
+            }
+        )
+    }
+
+    register(user: RegistrationForm): Promise<User> {
+        return this.query(
+            ApiEndpoints.register,
+            {
+                method: 'post',
+                body: JSON.stringify(user)
+            }
+        )
     }
 
     getCitiesByQuery (query: string): Promise<City[]> {

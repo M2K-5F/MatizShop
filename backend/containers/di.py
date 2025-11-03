@@ -9,7 +9,7 @@ from infrastructure.modules.auth.repositories.role_repository_impl import RoleRe
 from infrastructure.modules.auth.repositories.user_reposirory_impl import UserRepositoryImpl
 from infrastructure.modules.auth.repositories.user_role_repository_impl import UserRoleRepositoryImpl
 from infrastructure.modules.flights.city_repository_impl import AirportRepositoryImpl, CityRepositoryImpl
-from infrastructure.modules.flights.flight_repository_impl import FlightLocationRepositoryImpl, FlightRepositoryImpl, UserFlightRopositoryImpl
+from infrastructure.modules.flights.flight_repository_impl import FlightRepositoryImpl, UserFlightRopositoryImpl
 from restapi.modules.auth.dependencies import get_user_from_request
 from restapi.token.JWT_config import AuthJWT
 from restapi.token.tokenizer import JWTTokenizer
@@ -39,7 +39,6 @@ class DIContainer():
         return FlightService(
             FlightRepositoryImpl(),
             CityRepositoryImpl(),
-            FlightLocationRepositoryImpl(),
             AirportRepositoryImpl(),
             UserFlightRopositoryImpl(),
             UserRepositoryImpl(),

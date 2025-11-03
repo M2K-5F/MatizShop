@@ -1,32 +1,77 @@
-export interface Flight {
+interface Entity {
     id: number
-    tag: string
-    departure: Location
-    arrival: Location
-    duration: string
-    price: number
-    type: string
-    seats_count: number
+    created_at: string
 }
 
 
-export interface City {
-    id: number  
-    tag: string  
+export type role = 'ADMIN' | 'CUSTOMER'
+export type status = 'authorized' | "forbidden" | "unauthorized" | "undefined" | "serverunavailable"
+
+export interface User extends Entity{
+    phoneNumber: number
+    username: string
+    roles: role[]
+    emailAddress: string
+}
+
+
+export interface AuthForm {
+    phone_number: number
+    password: string
+    remember: boolean
+}
+
+export interface RegistrationForm {
+    username: string
+    phone_number: number
+    email_address: string
+    password: string
+}
+
+export interface Plane extends Entity {
     name: string
-    country: string
+    business_class_count: number
+    economy_class_ount: number
 }
 
-export interface Airport {
+
+export interface Seat extends Entity {
+    seat_class: 'BUSINESS' | 'ECONOMY'
+    seat_name: string
+    seat_number: number
+    plane: Plane
+}
+
+
+export interface Airport extends Entity {
     id: number
     code: string
     name: string
     city: City
 }
 
-export interface Location {
-    id: number
-    time: string
-    date: string
-    airport_tag: Airport
+export interface Flight extends Entity {
+    tag: string
+    departure: Airport
+    arrival: Airport
+    departure_time: string
+    arrival_time: string
+    duration: string
+    price: number
+    seats_left: number
+    plane: Plane
+}
+
+
+export interface FlightSeat extends Entity {
+    seat: Seat
+    flight: Flight
+}
+
+
+export interface City extends Entity {
+    id: number  
+    tag: string  
+    name: string
+    country: string
 }

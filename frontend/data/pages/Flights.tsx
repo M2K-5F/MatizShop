@@ -19,6 +19,15 @@ export default function FlightsPage() {
   const navigate = useNavigate()
   const service = use(getApiService)
 
+  const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+
   useEffect(() => {
     if (!arrival || !departure) {
       navigate('/')
@@ -34,16 +43,16 @@ export default function FlightsPage() {
     <div className="min-h-screen bg-blue-50">
       <div 
         className="relative h-64 bg-cover bg-center"
-        style={{ backgroundImage: "url('/images/flights_plane.webp')" }}
+        style={{ backgroundImage: "url('/images/flights_plane.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
           <div className="max-w-4xl text-white">
             <h1 className="text-4xl font-bold mb-4">
-              Рейсы в {flights[0].arrival.airport_tag.city.name}
+              Рейсы в {flights[0].arrival.city.name}
             </h1>
             <p className="text-lg">
-              {flights[0].departure.airport_tag.city.name} → {flights[0].arrival.airport_tag.city.name} • 1 пассажир
+              {flights[0].departure.city.name} → {flights[0].arrival.city.name} • 1 пассажир
             </p>
           </div>
         </div>
@@ -150,21 +159,21 @@ export default function FlightsPage() {
                             <h3 className="font-semibold">AeroLine</h3>
                             <p className="text-sm text-gray-600">{flight.tag}</p>
                           </div>
-                          <Badge variant={flight.type === "Бизнес" ? "default" : "secondary"}>
-                            {flight.type}
+                          <Badge variant={flight.plane.business_class_count ? "default" : "secondary"}>
+                            Эконом
                           </Badge>
                         </div>
 
                         <div className="flex items-center justify-between max-w-md">
                           {/* Departure */}
                           <div className="text-center">
-                            <div className="text-2xl font-bold">{flight.departure.time}</div>
-                            <div className="text-sm text-gray-600">{flight.departure.airport_tag.city.name}</div>
-                            <div className="text-xs text-gray-500">{flight.departure.date}</div>
+                            <div className="text-2xl font-bold">{formatDate(flight.departure_time)}</div>
+                            <div className="text-sm text-gray-600">{flight.departure.city.name}</div>
+                            <div className="text-xs text-gray-500">{flight.departure_time}</div>
                           </div>
 
                           {/* Flight Path */}
-                          <div className="flex-1 px-4">
+                          <div className="flex-1 px-4 min-w-40">
                             <div className="flex items-center justify-center gap-2 mb-1">
                               <Clock className="w-4 h-4 text-gray-400" />
                               <span className="text-sm text-gray-600">{flight.duration}</span>
@@ -179,9 +188,9 @@ export default function FlightsPage() {
 
                           {/* Arrival */}
                           <div className="text-center">
-                            <div className="text-2xl font-bold">{flight.arrival.time}</div>
-                            <div className="text-sm text-gray-600">{flight.arrival.airport_tag.city.name}</div>
-                            <div className="text-xs text-gray-500">{flight.arrival.date}</div>
+                            <div className="text-2xl font-bold">{formatDate(flight.arrival_time)}</div>
+                            <div className="text-sm text-gray-600">{flight.arrival.city.name}</div>
+                            <div className="text-xs text-gray-500">{flight.arrival_time}</div>
                           </div>
                         </div>
                       </div>
@@ -194,7 +203,7 @@ export default function FlightsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-end">
                           <Users className="w-4 h-4" />
-                          <span>Осталось {flight.seats_count} мест</span>
+                          <span>Осталось {flight.seats_left} мест</span>
                         </div>
                         <Button className="bg-blue-600 hover:bg-blue-700">
                           Выбрать

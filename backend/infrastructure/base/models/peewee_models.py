@@ -1,8 +1,13 @@
-from datetime import datetime
-from peewee import Model, AutoField, DateTimeField, SqliteDatabase, CharField, IntegerField, ForeignKeyField, BooleanField, DateField
+from datetime import datetime, timedelta
+from email.errors import CharsetError
+from peewee import Model, AutoField, DateTimeField, SqliteDatabase, CharField, IntegerField, ForeignKeyField, BooleanField, DateField, TimeField
 
 from core.config import city_config
 from core.config.ticket_config import flights_data
+from core.modules.flight.interfaces import flight_repository
+from infrastructure.base.models.base_locations import create_base_locations
+from infrastructure.base.models.base_planes import create_base_planes
+from infrastructure.base.models.base_users import create_base_users
 from infrastructure.modules.auth.interfaces.password_hasher_impl import PasswordHasherImpl
 
 database = SqliteDatabase("SQLite3Database.db")
@@ -43,94 +48,71 @@ class Airport(Table):
     city = ForeignKeyField(City, field=City.tag, backref='airports')
 
 
-class FlightLocation(Table):
-    airport_tag = ForeignKeyField(Airport, field=Airport.code)
-    time = CharField()
-    date = DateField()
+class Plane(Table):
+    name = CharField()
+    business_class_count = IntegerField()
+    economy_class_count = IntegerField()
+
+
+class Seat(Table):
+    seat_class = CharField()
+    seat_name = CharField()
+    seat_number = IntegerField()
+    plane = ForeignKeyField(Plane)
 
 
 class Flight(Table):
     tag = CharField()
-    departure = ForeignKeyField(FlightLocation)
-    arrival = ForeignKeyField(FlightLocation)
-    duration = CharField()
+    departure = ForeignKeyField(Airport)
+    arrival = ForeignKeyField(Airport)
+    departure_time = DateTimeField()
+    arrival_time = DateTimeField()
+    duration = TimeField()
     price = IntegerField()
-    type = CharField()
-    seats_count = IntegerField()
+    seats_left = IntegerField()
+    plane = ForeignKeyField(Plane)
+
+
+class FlightSeat(Table):
+    seat = ForeignKeyField(Seat)
+    flight = ForeignKeyField(Flight)
 
 
 class UserFlight(Table):
-    flight = ForeignKeyField(Flight)
+    flight_seat = ForeignKeyField(FlightSeat)
     user = ForeignKeyField(User)
 
 
 @database.atomic()
 def main():
-    database.register_function(lambda value: print(value), 'lower')
     database.create_tables([
-        User, Role, UserRole, 
-        City, Airport, Flight, 
-        FlightLocation, User
+        Seat, FlightSeat, UserFlight,
+        User, Role, UserRole, Plane,
+        City, Airport, Flight , User
     ])
 
-    admin_role, _ = Role.get_or_create(
-        name = "ADMIN"
+    create_base_users(User, Role, UserRole)
+    create_base_locations(Airport, City)
+    mc_21, mc_21_seats_count = create_base_planes(Plane, Seat)
+
+    created_flight, _ = Flight.get_or_create(
+        tag = 'WS228',
+        departure = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == "MOW")),
+        arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
+        departure_time = datetime(2025, 11, 20, 10, 00, 00),
+        arrival_time = datetime(2025, 11, 20, 20),
+        duration = timedelta(hours=10),
+        price = 15000,
+        seats_left = mc_21_seats_count,
+        plane = mc_21
     )
 
-    customer_role, _ = Role.get_or_create(
-        name = "CUSTOMER"
-    )
-
-    base_admin, _ = User.get_or_create(
-        username = 'admin',
-        defaults={    
-            "email_address": 'psina@pisos.kpk',
-            "phone_number": '88001007393',
-            "password_hash": PasswordHasherImpl.hash('12345')
-        }
-    )
-
-    _, _ = UserRole.get_or_create(
-        user = base_admin,
-        role = admin_role
-    )
-
-    for city in city_config.cities_data:
-        created_city, _ = City.get_or_create(
-            tag = city['id'],
-            name = city['name'],
-            country = city['country']
+    seats = list(Seat.select().where(Seat.plane == mc_21))
+    for seat in seats:
+        FlightSeat.get_or_create(
+            flight = created_flight,
+            seat = seat,
         )
-
-        for airport in city['airports']:
-            Airport.get_or_create(
-                code = airport['code'],
-                name = airport['name'],
-                city = created_city
-            )
-
-        
-    for flight in flights_data:
-        created_departure, _  = FlightLocation.get_or_create(
-            airport_tag = flight['departure']['city'],
-            time = flight['departure']['time'],
-            date = flight['departure']['date']
-        )
-        created_arrival, _ = FlightLocation.get_or_create(
-            airport_tag = flight['arrival']['city'],
-            time = flight['arrival']['time'],
-            date = flight['arrival']['date']
-        )
-        created_flight = Flight.get_or_create(
-            tag = flight['flightNumber'],
-            departure = created_departure,
-            arrival = created_arrival,
-            duration = flight['duration'],
-            price = flight['price'],
-            type = flight['type'],
-            seats_count = flight['seats']
-        )
-
 
 if __name__ == '__main__':
     main()

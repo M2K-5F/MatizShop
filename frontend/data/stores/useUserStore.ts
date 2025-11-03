@@ -1,14 +1,5 @@
+import { status, User } from '@/interfaces/interfaces'
 import { create } from 'zustand'
-
-type role = 'ADMIN' | 'CUSTOMER'
-type status = 'authorized' | "forbidden" | "unauthorized" | "undefined" | "serverunavailable"
-
-interface User {
-    phoneNumber: number
-    username: string
-    roles: role[]
-    emailAddress: string
-}
 
 export interface UserStore {
     user: User | undefined
