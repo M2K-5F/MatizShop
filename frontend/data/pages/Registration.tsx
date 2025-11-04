@@ -1,19 +1,41 @@
+import { getApiService } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {ErrorMessage} from "@/components/ui/error-message";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegistrationForm } from "@/interfaces/interfaces";
+import { use } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 
 
 export const RegistrationPage = () => {
     const {register, handleSubmit, formState: {errors}} = useForm<RegistrationForm>()
+    const apiService = use(getApiService)
+    const navigate = useNavigate()
+    const handleRegistration = (regData: RegistrationForm) => {
+        apiService?.register(regData)
+            .then(user => toast(
+                'Пользователь зарегистрирован!', {
+                    description: `Учетная запись с именем: ${user.username} зарегистрирована!`,
+                    action: {
+                        label: 'Авторизоваться',
+                        onClick: () => navigate(
+                            `/users/auth?pwd=${regData.password}&pn=${user['phone_number']}`
+                        )
+                    }
+                }
+            ))
+    }
+
+
 
 
     return(
-        <form onSubmit={handleSubmit((d) => console.log(d))}>
+        <form onSubmit={handleSubmit((d) => handleRegistration(d))}>
             <Card>
                 <CardHeader>
                     <CardTitle>Создать аккаунт</CardTitle>

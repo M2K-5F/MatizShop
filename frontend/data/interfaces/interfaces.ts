@@ -15,8 +15,16 @@ export interface User extends Entity{
 }
 
 
-export interface AuthForm {
+export interface UserResponse extends Entity {
     phone_number: number
+    username: string
+    roles: role[]
+    email_address: string
+}
+
+
+export interface AuthForm {
+    phone_number: string
     password: string
     remember: boolean
 }
@@ -60,6 +68,7 @@ export interface Flight extends Entity {
     price: number
     seats_left: number
     plane: Plane
+    flight_class: "BUSINESS"|"ECONOMY"
 }
 
 

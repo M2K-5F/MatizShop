@@ -1,8 +1,6 @@
 import { UserStore, useUserStore } from "@/stores/useUserStore";
-import { i } from "node_modules/shadcn/dist/index-8c784f6a";
 import { ApiEndpoints } from "./path.config";
-import { AuthForm, City, Flight, RegistrationForm, User } from "@/interfaces/interfaces";
-import { TheaterIcon } from "lucide-react";
+import { AuthForm, City, Flight, RegistrationForm, User, UserResponse } from "@/interfaces/interfaces";
 
 export class ApiService {
     userStore: UserStore
@@ -12,43 +10,47 @@ export class ApiService {
     }
 
 
-    query (queryUrl: string, init?: RequestInit & {queries?: Record<string, number | string>, ignoreUnautorized?: boolean, ignoreForbidden?: boolean}) {
+    async query (queryUrl: string, init?: RequestInit & {queries?: Record<string, number | string>, ignoreUnautorized?: boolean, ignoreForbidden?: boolean}) {
         if (init?.queries) {
             queryUrl += '?'
             Object.entries(init.queries).map(query => {queryUrl += `${query[0]}=${query[1]}&`})
         }
-
-        return fetch(queryUrl, {
+        let response: Response
+        try {
+            response = await fetch(queryUrl, {
             credentials: 'include', 
             headers: {
                 'accept': 'application/json',
                 'Content-Type': 'application/json'
             }, 
             ...init
-        })
-            .catch((e) => {
-                this.userStore.setUnavailable()
-                throw Error('HTTP:503 Server Unavailable')
             })
-            .then((response: Response) => {
-                if (response.ok) {
-                    return response.json()
-                } else {
-                    if (response.status === 401 && !(init?.ignoreUnautorized)) {
-                        this.userStore.removeUser()
-                        throw Error("HTTP:401 Unautorized")
-                    }
+        } catch {
+            this.userStore.setUnavailable()
+            throw Error('HTTP:503 Server Unavailable')
+        }
 
-                    if (response.status === 403 && !(init?.ignoreForbidden)) {
-                        this.userStore.setForbidden()
-                        throw Error("HTTP:403 Forbidden")
-                    }
-                    throw Error(response.status.toString())
-                }
-            })
+        if (response.ok) {
+            return response.json()
+        } else {
+            if (response.status === 401 && !(init?.ignoreUnautorized)) {
+                this.userStore.removeUser()
+                throw Error("HTTP:401 Unautorized")
+            }
+
+            if (response.status === 403 && !(init?.ignoreForbidden)) {
+                this.userStore.setForbidden()
+                throw Error("HTTP:403 Forbidden")
+            }
+            const data = await response.json()
+            throw {
+                status: response.status.toString(),
+                body: data.detail
+            }
+        }
     }
 
-    getUsersMe(): Promise<User> {
+    getUsersMe(): Promise<UserResponse> {
         return this.query(
             ApiEndpoints.getUserMe,
         )
@@ -63,7 +65,7 @@ export class ApiService {
         )
     }
 
-    login(user: AuthForm): Promise<User> {
+    login(user: AuthForm): Promise<UserResponse> {
         return this.query(
             ApiEndpoints.login,
             {
@@ -73,7 +75,7 @@ export class ApiService {
         )
     }
 
-    register(user: RegistrationForm): Promise<User> {
+    register(user: RegistrationForm): Promise<UserResponse> {
         return this.query(
             ApiEndpoints.register,
             {

@@ -71,6 +71,7 @@ class Flight(Table):
     price = IntegerField()
     seats_left = IntegerField()
     plane = ForeignKeyField(Plane)
+    flight_class = CharField()
 
 
 class FlightSeat(Table):
@@ -95,7 +96,7 @@ def main():
     create_base_locations(Airport, City)
     mc_21, mc_21_seats_count = create_base_planes(Plane, Seat)
 
-    created_flight, _ = Flight.get_or_create(
+    created_business_flight, _ = Flight.get_or_create(
         tag = 'WS228',
         departure = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == "MOW")),
         arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
@@ -104,13 +105,36 @@ def main():
         duration = timedelta(hours=10),
         price = 15000,
         seats_left = mc_21_seats_count,
-        plane = mc_21
+        plane = mc_21,
+        flight_class = "BUSINESS"
     )
 
-    seats = list(Seat.select().where(Seat.plane == mc_21))
-    for seat in seats:
+    business_seats = list(Seat.select().where(Seat.plane == mc_21, Seat.seat_class == 'BUSINESS'))
+    for seat in business_seats:
         FlightSeat.get_or_create(
-            flight = created_flight,
+            flight = created_business_flight,
+            seat = seat,
+        )
+
+    
+    created_business_flight, _ = Flight.get_or_create(
+        tag = 'WS228',
+        departure = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == "MOW")),
+        arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
+        departure_time = datetime(2025, 11, 20, 10, 00, 00),
+        arrival_time = datetime(2025, 11, 20, 20),
+        duration = timedelta(hours=10),
+        price = 15000,
+        seats_left = mc_21_seats_count,
+        plane = mc_21,
+        flight_class = "ECONOMY"
+    )
+
+    
+    economy_seats = list(Seat.select().where(Seat.plane == mc_21, Seat.seat_class == 'ECONOMY'))
+    for seat in economy_seats:
+        FlightSeat.get_or_create(
+            flight = created_business_flight,
             seat = seat,
         )
 

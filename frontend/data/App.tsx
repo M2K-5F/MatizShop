@@ -11,6 +11,7 @@ import { AuthPage } from "./pages/Auth"
 import { AppLayout } from "./layouts/AppLayout"
 import { RegistrationPage } from "./pages/Registration"
 import { getPathToRedirect, isPathAvailable } from "./routes/routes"
+import { Toaster } from "sonner"
 
 export const getApiService = createContext<null | ApiService>(null)
 
@@ -26,9 +27,14 @@ export const App = () => {
     useEffect(() => {
         (async () => {
             const current_user = await apiService.getUsersMe()
-            userStore.addUser(
-                current_user
-            )
+            userStore.addUser({
+                username: current_user.username,
+                phoneNumber: current_user.phone_number,
+                emailAddress: current_user.email_address,
+                roles: current_user.roles,
+                id: current_user.id,
+                created_at: current_user.created_at
+            })
         })()
     }, [])
 
@@ -41,6 +47,7 @@ export const App = () => {
 
     return(
         <getApiService.Provider value={apiService}>
+            <Toaster position='top-center' />
             <Routes>
                 <Route path="/users/*" Component={AuthLayout}>
                     <Route path="auth" Component={AuthPage} />

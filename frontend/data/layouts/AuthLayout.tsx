@@ -1,19 +1,15 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Value } from "@radix-ui/react-select"
 import { Plane } from "lucide-react"
 import { createContext, Dispatch, FC, SetStateAction, useLayoutEffect, useState } from "react"
 import { Outlet, useNavigate } from "react-router-dom"
 
-export const ValueContext = createContext<Dispatch<SetStateAction<"auth" | "reg">> | undefined>(undefined)
+export const ValueContext = createContext<Dispatch<SetStateAction<"auth" | "reg" | string>> | undefined>(undefined)
 
 export const AuthLayout: FC = () => {
-    const [value, setValue] = useState<'auth' | 'reg' | string>(window.location.pathname.endsWith('reg')? 'reg' : 'auth')
     const navigate = useNavigate()
-    
-
-    useLayoutEffect(() => {
-        navigate(`/users/${value === 'auth' ? "auth": "reg"}`)
-    }, [value])
+    const value = window.location.pathname.endsWith('auth') ? 'auth' : 'reg'
 
 
     return (
@@ -31,10 +27,23 @@ export const AuthLayout: FC = () => {
                         Войдите в свой аккаунт или создайте новый
                     </p>
                 </div>
-                <Tabs value={value} onValueChange={(v) => setValue(v)}>
+                <Tabs value={value}>
                     <TabsList className="grid w-full grid-cols-2 mb-8">
-                        <TabsTrigger value="auth">Вход</TabsTrigger>
-                        <TabsTrigger value="reg">Регистрация</TabsTrigger>
+                        <TabsTrigger 
+                            value="auth" 
+                            onClick={() => {
+                                value !== 'auth' && navigate('/users/auth')
+                            }}
+                        >Вход
+                        </TabsTrigger>
+
+                        <TabsTrigger 
+                            value="reg"
+                            onClick={() => {
+                                value !== 'reg' && navigate('/users/reg')
+                            }}
+                        >Регистрация
+                        </TabsTrigger>
                     </TabsList>
                 </Tabs>
 
@@ -44,6 +53,6 @@ export const AuthLayout: FC = () => {
                     <p>© 2025 AeroLine. Все права защищены.</p>
                 </div>
             </div>
-        </div>
+        </div>   
     )
 }

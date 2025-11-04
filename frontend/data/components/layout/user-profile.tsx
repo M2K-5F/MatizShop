@@ -26,6 +26,7 @@ import { getApiService } from "@/App"
 export const UserProfile = () => {
     const userStore = useUserStore()
     const apiService = use(getApiService)
+    
 
     const getInitials = (name: string) => {
         return name

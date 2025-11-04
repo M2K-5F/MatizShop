@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import timedelta
 import datetime
+import string
 from typing import Union
 from core.base.entities.entity import Entity
 from core.config.city_config import City
@@ -20,6 +21,7 @@ class Flight(Entity):
     price: int
     seats_left: int
     plane: Plane
+    flight_class: str
 
 
 @dataclass

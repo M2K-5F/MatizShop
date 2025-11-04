@@ -9,18 +9,43 @@ import { AuthForm } from "@/interfaces/interfaces"
 import { useUserStore } from "@/stores/useUserStore"
 import { use } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useParams, useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
 
 
 export const AuthPage = () => {
-    const {register, handleSubmit, formState: {errors}, control} = useForm<AuthForm>()
+    const [params, setParams] = useSearchParams()
+    const {register, handleSubmit, formState: {errors}, control} = useForm<AuthForm>({
+        defaultValues: {
+            phone_number: params.get('pn') || '',
+            password: params.get('pwd') || ''
+        }})
     const userStore = useUserStore()
     const apiService = use(getApiService)
 
     const handleAuth = (authData: AuthForm) => {
         apiService?.login(authData)
             .then(user => {
-                userStore.addUser(user)
+                userStore.addUser({
+                    username: user.username,
+                    phoneNumber: user.phone_number,
+                    emailAddress: user.email_address,
+                    roles: user.roles,
+                    id: user.id,
+                    created_at: user.created_at
+                })
+            })
+            .catch(value => {
+                switch (value.body) {
+                    case ('uncorrect password'): 
+                        toast('Неверный пароль')
+                        break
+                    
+                    case 'uncorrect phone':
+                        toast('Номер телефона неверен')
+                        break
+                }
             })
     }
 
@@ -75,7 +100,7 @@ export const AuthPage = () => {
                         <ErrorMessage error={errors.password} />
                     </div>
 
-                    <div className="flex justify-center gap-2 items-center space-x-2">
+                    <div className="flex justify-center gap-2a items-center space-x-2">
                         <Controller
                             name="remember"
                             control={control}
