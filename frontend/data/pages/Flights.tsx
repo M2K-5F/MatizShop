@@ -12,14 +12,17 @@ import { Flight } from "@/interfaces/interfaces"
 import { Loader } from "@/components/ui/loader"
 import { CreatedFlight } from "./CreatedFlight"
 import { Checkbox } from "@/components/ui/checkbox"
+import { FlightFilter } from "./FlightsFilter"
 
 export default function FlightsPage() {
     const [flights, setFlights] = useState<Flight[]>([])
+    const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
     const [params, setParams] = useSearchParams()
     const departure = params.get('departure')
     const arrival = params.get('arrival')
     const navigate = useNavigate()
     const service = use(getApiService)
+    
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
@@ -36,7 +39,10 @@ export default function FlightsPage() {
             navigate('/')
         } else {
             service?.getFlightsByCities(departure, arrival, '')
-                .then(flights => setFlights(flights))
+                .then(flights => {
+                    setFlights(flights)
+                    setFilteredFlights(flights)
+                })
         }
     }, [arrival, departure])
 
@@ -65,42 +71,7 @@ export default function FlightsPage() {
             <div className="container mx-auto px-6 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Filter className="w-5 h-5" />
-                                    Фильтры
-                                </CardTitle>
-                            </CardHeader>
-
-                            <CardContent className="space-y-6">
-                                <div>
-                                    <Label className="text-sm font-medium mb-3 block">Цена, ₽</Label>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Input placeholder="От" className="text-sm" />
-                                            <span className="text-gray-500">-</span>
-                                            <Input placeholder="До" className="text-sm" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                <Label className="text-sm font-medium mb-3 block">Время вылета</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {["Утро\n06:00-12:00", "День\n12:00-18:00", "Вечер\n18:00-00:00", "Ночь\n00:00-06:00"].map((time) => (
-                                    <Button key={time} variant="outline" className="h-auto py-2 text-xs whitespace-pre-wrap">
-                                        {time}
-                                    </Button>
-                                    ))}
-                                </div>
-                                </div>
-
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                                Применить фильтры
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <FlightFilter flights={flights} callbackfn={(flights: Flight[]) => {setFilteredFlights(flights)}}  />
                     </div>
 
                     <div className="lg:col-span-3">
@@ -124,9 +95,11 @@ export default function FlightsPage() {
                         </div>
 
                         <div className="space-y-4">
-                        {flights.map((flight) => (
-                            <CreatedFlight flight={flight} formatDate={formatDate}/>
-                        ))}
+                        {
+                            filteredFlights.map((flight) => (
+                                <CreatedFlight flight={flight} key={flight.id} formatDate={formatDate}/>
+                            ))
+                        }
                         </div>
 
                         <div className="text-center mt-8">
