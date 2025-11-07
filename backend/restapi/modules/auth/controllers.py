@@ -28,7 +28,7 @@ async def login(
         raise ValueError('uncorrect password')
     
     current_user = service.get_user(login_user.phone_number)
-    expires_delta = timedelta(days=30) if login_user.is_remember else timedelta(minutes=15)
+    expires_delta = timedelta(days=30) if login_user.remember else timedelta(minutes=15)
     now = datetime.now(timezone.utc)
     expires_at = now + expires_delta
     

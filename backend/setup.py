@@ -11,5 +11,6 @@ setup(
         "fastapi==0.115.11",
         "pyjwt==2.9.0",
         "uvicorn==0.33.0",
+        "validators==0.34.0"
     ]
 )

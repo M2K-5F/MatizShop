@@ -1,6 +1,8 @@
 from re import A
 from fastapi import APIRouter, FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
@@ -28,6 +30,17 @@ app.add_middleware(
         allow_credentials=True, 
         allow_methods=["*"],
         allow_headers=["*"],
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "type": "validation_error",
+            "detail": (', ').join(exc.errors()[0]["msg"].split(', ')[1:])
+        }
     )
 
 

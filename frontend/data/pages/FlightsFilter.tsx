@@ -6,47 +6,52 @@ import { Flight } from "@/interfaces/interfaces"
 import { Filter } from "lucide-react"
 import { useEffect, useState } from "react"
 
+type TimeRange = {start: number, end: number, label: string}
+
+interface Filters {
+    min: number | null
+    max: number | null
+    ranges: TimeRange[]
+}
+
+const timeRanges: TimeRange[] = [
+    { start: 6, end: 12, label: 'Утро 06:00-12:00' },
+    { start: 12, end: 18, label: 'День 12:00-18:00' },
+    { start: 18, end: 24, label: 'Вечер 18:00-00:00' },
+    { start: 0, end: 6, label: 'Ночь 00:00-06:00' }
+] as const
+
+const baseFilters = {
+        min: null,
+        max: null,
+        ranges: []
+    }
+
+
 export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callbackfn: (flights: Flight[]) => void}) => {
-    const [minPrice, setMinPrice] = useState<string>('')
-    const [maxPrice, setMaxPrice] = useState<string>('')
-    const [timeFilter, setTimeFilter] = useState<('6-12' | '12-18' | '18-0' | '0-6')[]>([])
-    const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
-    const getPriceValue = (value: string) => {
-        if (value.length) {
-            if (value.startsWith('0')) {
-                return value.slice(1)
-            }
-            else {
-                return value
-            }
-
-        } else {
-            return ''
-        }
-    }
-
-    const getFilteredByTime = (departureTime: string) => {
-        return (timeFilter.filter(time => {
-            const [hourseMin, hourseMax] = time.split('-')
-            if (departureTime >= hourseMin && departureTime < hourseMax) {
-                return true
-            }
-            return false
-        }).length > 0) || timeFilter.length === 0
-    }
-
-    useEffect(() => {
-        setFilteredFlights(flights.filter(
+    const [filters, setFilters] = useState<Filters>(baseFilters)
+    
+    const filterFlights = () => {
+        const filtered = flights.filter(
             flight => {
-                const departureTime = flight.departure_time.split('T')[1].split(':')[0];
+                const departureHour = parseInt(flight.departure_time.split('T')[1].split(':')[0])
+                const isPriceValid = 
+                    (filters.min === null || flight.price >= filters.min) &&
+                    (filters.max === null || flight.price <= filters.max) 
+
+                const isRangeValid = 
+                    filters.ranges.length === 0 || 
+                    filters.ranges.some(range => 
+                        range.start <= departureHour && range.end > departureHour
+                    )
+
                 return (
-                    ((flight.price >= Number(minPrice)) || minPrice === '' )&&
-                    ((flight.price <= Number(maxPrice)) || maxPrice === '') &&
-                    getFilteredByTime(departureTime)
+                    isPriceValid && isRangeValid
                 )
             }
-        ))
-    }, [minPrice, maxPrice, timeFilter])
+        )
+        callbackfn(filtered)
+    }
 
 
     return(
@@ -64,25 +69,24 @@ export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callback
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <Input 
-                                value={minPrice}
+                                value={filters.min ?? ''}
                                 type="number"
                                 placeholder="От" 
                                 className="text-sm" 
                                 onChange={(e) => {
-                                    const value = getPriceValue(e.currentTarget.value)
-                                    setMinPrice(value)
+                                    const value = e.currentTarget.value
+                                    setFilters((d) => ({...d, min: value ? parseInt(value) : null}))
                                 }}
                             />
                             <span className="text-gray-500">-</span>
                             <Input
                                 type="number"
-                                value={maxPrice}
+                                value={filters.max ?? ''}
                                 placeholder="До" 
                                 className="text-sm" 
                                 onChange={(e) => {
-                                    const value = getPriceValue(e.currentTarget.value)
-                                    console.log(value)
-                                    setMaxPrice(value)
+                                    const value = e.currentTarget.value
+                                    setFilters((d) => ({...d, max: value ? parseInt(value) : null}))
                                 }}
                             />
                         </div>
@@ -92,18 +96,18 @@ export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callback
                 <div>
                 <Label className="text-sm font-medium mb-3 block">Время вылета</Label>
                 <div className="grid grid-cols-2 gap-2">
-                    {([["Утро\n06:00-12:00", '6-12'], ["День\n12:00-18:00", '12-18'], ["Вечер\n18:00-00:00", '18-0'], ["Ночь\n00:00-06:00", '0-6']] as const) .map((time, index) => (
+                    {(timeRanges) .map((time, index) => (
                     <Button 
-                        key={time[1]} 
-                        variant={timeFilter.includes(time[1]) ? 'default' : 'outline'} 
+                        key={time.label} 
+                        variant={filters.ranges.includes(time) ? 'default' : 'outline'} 
                         className="h-auto py-2 text-xs whitespace-pre-wrap"
                         onClick={() => {
-                            timeFilter.includes(time[1])
-                                ? setTimeFilter(() => timeFilter.filter(v => v !== time[1]))
-                                : setTimeFilter([...timeFilter, time[1]])
+                            filters.ranges.some(p => p.start === time.start)
+                                ? setFilters((d) => ({...d, ranges: d.ranges.filter(r => r.start !== time.start)}))
+                                : setFilters(d => ({...d, ranges: [...d.ranges, time]}))
                         }}
                     >
-                        {time}
+                        {time.label}
                     </Button>
                     ))}
                 </div>
@@ -112,10 +116,19 @@ export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callback
                 <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     onClick={() => {
-                        callbackfn(filteredFlights)
+                        filterFlights()
                     }}
                 >
                     Применить фильтры
+                </Button>
+
+                <Button
+                    onClick={() => {
+                        setFilters(baseFilters)
+                    }}
+                    className="mx-auto"
+                >
+                    Сбросить фильтры
                 </Button>
             </CardContent>
         </Card>

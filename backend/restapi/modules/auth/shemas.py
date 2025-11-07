@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from validators import email
 
 
 class User(BaseModel):
@@ -6,9 +7,15 @@ class User(BaseModel):
     password: str
 
 class AuthUser(User):
-    is_remember: bool = False
+    remember: bool = False
 
 
 class RegisterUser(User):
     email_address: str
     username: str
+
+    @field_validator('email_address')
+    def validate_email(cls, v):
+        if email(v):
+            return v
+        raise ValueError('unvalid email')
