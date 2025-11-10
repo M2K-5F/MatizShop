@@ -1,5 +1,5 @@
-from infrastructure.base.models.peewee_models import Airport, City
-from infrastructure.base.repositories.repository_impl import RepositoryImpl
+from infrastructure.common.models.peewee_models import Airport, City
+from infrastructure.common.repositories.repository_impl import RepositoryImpl
 from core.modules.flight.entites.city import City as CityEntity, Airport as AirportEntity
 from peewee import fn
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, fields, replace
 from typing import List, Literal
 
-from core.base.entities.entity import Entity
+from core.common.entities.entity import Entity
 from core.modules.auth.interfaces.password_hasher import PasswordHasher
 
 

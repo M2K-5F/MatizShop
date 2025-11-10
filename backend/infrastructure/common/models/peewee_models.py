@@ -5,17 +5,17 @@ from peewee import Model, AutoField, DateTimeField, SqliteDatabase, CharField, I
 from core.config import city_config
 from core.config.ticket_config import flights_data
 from core.modules.flight.interfaces import flight_repository
-from infrastructure.base.models.base_locations import create_base_locations
-from infrastructure.base.models.base_planes import create_base_planes
-from infrastructure.base.models.base_users import create_base_users
-from infrastructure.modules.auth.interfaces.password_hasher_impl import PasswordHasherImpl
+from infrastructure.common.models.base_locations import create_base_locations
+from infrastructure.common.models.base_planes import create_base_planes
+from infrastructure.common.models.base_users import create_base_users
+from infrastructure.common.impls.password_hasher_impl import PasswordHasherImpl
 
 database = SqliteDatabase("SQLite3Database.db")
 
 
 class Table(Model):
     id = AutoField()
-    created_at = DateTimeField(default=datetime.now().isoformat())
+    created_at = DateTimeField(default=datetime.now().replace(microsecond=0))
 
     class Meta:
         database = database
@@ -121,7 +121,7 @@ def main():
         tag = 'WS228',
         departure = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == "MOW")),
         arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
-        departure_time = datetime(2025, 11, 20, 10, 00, 00),
+        departure_time = datetime(2025, 11, 20, 10),
         arrival_time = datetime(2025, 11, 20, 20),
         duration = timedelta(hours=10),
         price = 15000,

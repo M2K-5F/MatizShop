@@ -1,8 +1,10 @@
-from infrastructure.base.models.peewee_models import Airport, City, Flight, FlightSeat, UserFlight
-from infrastructure.base.repositories.repository_impl import RepositoryImpl
+from datetime import datetime
+from infrastructure.common.models.peewee_models import Airport, City, Flight, FlightSeat, UserFlight
+from infrastructure.common.repositories.repository_impl import RepositoryImpl
 from core.modules.flight.entites.flight import UserFlight as UserFlightEntity
 from core.modules.flight.entites.flight import Flight as FlightEntity, FlightSeat as FlightSeatE
 from playhouse.shortcuts import model_to_dict
+from peewee import fn
 
 
 
@@ -11,7 +13,7 @@ class FlightRepositoryImpl(RepositoryImpl[Flight, FlightEntity]):
         super().__init__(Flight, FlightEntity)
 
 
-    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str):
+    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str, date: datetime):
         DepartureAirport = Airport.alias()
         ArrivalAirport = Airport.alias()
         
@@ -21,7 +23,8 @@ class FlightRepositoryImpl(RepositoryImpl[Flight, FlightEntity]):
             .join(ArrivalAirport, on=(self.model.arrival == ArrivalAirport.id))
             .where(
                 DepartureAirport.city == departure_city_tag.upper(),
-                ArrivalAirport.city == arrival_city_tag.upper()
+                ArrivalAirport.city == arrival_city_tag.upper(),
+                self.model.departure_time ** f'%{date.date()}%'
             )
         )
         

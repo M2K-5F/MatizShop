@@ -1,4 +1,4 @@
-from infrastructure.modules.auth.interfaces.password_hasher_impl import PasswordHasherImpl
+from infrastructure.common.impls.password_hasher_impl import PasswordHasherImpl
 
 
 def create_base_users(User, Role, UserRole):

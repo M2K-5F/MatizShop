@@ -3,7 +3,7 @@ from datetime import timedelta
 import datetime
 import string
 from typing import Union
-from core.base.entities.entity import Entity
+from core.common.entities.entity import Entity
 from core.config.city_config import City
 from core.modules.auth.entities.user import User
 from core.modules.flight.entites.city import Airport

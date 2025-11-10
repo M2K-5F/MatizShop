@@ -119,6 +119,14 @@
   }
 }
 
+body {
+  min-height: 100dvh;
+
+  & > #root {
+    height: 100dvh;
+  }
+}
+
 .avatar-fallback {
   background-color: rgb(102, 102, 249);
 }

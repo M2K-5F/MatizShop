@@ -15,11 +15,18 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { FlightFilter } from "./FlightsFilter"
 
 export default function FlightsPage() {
+    const [loading, setLoading] = useState<boolean>(true)
     const [flights, setFlights] = useState<Flight[]>([])
+    const [locations, setLocations] = useState<{departure: string, arrival: string}>({
+        arrival: "",
+        departure: ""
+    })
     const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
+
     const [params, setParams] = useSearchParams()
     const departure = params.get('departure')
     const arrival = params.get('arrival')
+    const date = params.get('date')
     const navigate = useNavigate()
     const service = use(getApiService)
     
@@ -35,19 +42,27 @@ export default function FlightsPage() {
 
 
     useEffect(() => {
-        if (!arrival || !departure) {
+        setLoading(true)
+        if (!arrival || !departure || !date) {
             navigate('/')
         } else {
-            service?.getFlightsByCities(departure, arrival, '')
-                .then(flights => {
-                    setFlights(flights)
-                    setFilteredFlights(flights)
+            service?.getFlightsByCities(departure, arrival, date)
+                .then(response => {
+                    setFlights(response.flights)
+                    setFilteredFlights(response.flights)
+                    setLocations({...response})
                 })
+                .finally(() => {setLoading(false)})
         }
     }, [arrival, departure])
 
 
-    if (!flights.length) return <Loader variant='success' />
+    if (loading) return (
+        <div className="h-full">
+            <Loader variant='success' />
+        </div>
+    )
+
 
     return (
         <div className="min-h-screen bg-blue-50">
@@ -77,28 +92,19 @@ export default function FlightsPage() {
                     <div className="lg:col-span-3">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold">Найдено рейсов: {flights.length} </h2>
+                                <h2 className="text-2xl font-bold">Найдено рейсов: {filteredFlights.length} </h2>
                                 <p className="text-gray-600">Сортировка по: рекомендованным</p>
                             </div>
-                            <Select defaultValue="recommended">
-                                <SelectTrigger className="w-48">
-                                <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                <SelectItem value="recommended">Рекомендованные</SelectItem>
-                                <SelectItem value="price_asc">Сначала дешевые</SelectItem>
-                                <SelectItem value="price_desc">Сначала дорогие</SelectItem>
-                                <SelectItem value="duration">По времени в пути</SelectItem>
-                                <SelectItem value="departure">По времени вылета</SelectItem>
-                                </SelectContent>
-                            </Select>
                         </div>
 
                         <div className="space-y-4">
-                        {
-                            filteredFlights.map((flight) => (
-                                <CreatedFlight flight={flight} key={flight.id} formatDate={formatDate}/>
-                            ))
+                        {filteredFlights.length > 0
+                            ?   filteredFlights.map((flight) => (
+                                    <CreatedFlight flight={flight} key={flight.id} formatDate={formatDate}/>
+                                ))
+                            :   <div>
+                                    <h1 className="text-2xl text-center font-bold">Рейсы не найдены</h1>
+                                </div>
                         }
                         </div>
 

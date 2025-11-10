@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal, Union
 
-from core.base.entities.entity import Entity
+from core.common.entities.entity import Entity
 
 
 @dataclass

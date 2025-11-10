@@ -26,6 +26,9 @@ class Entity:
                     value = value.to_dict(nesting - 1)
                 else:
                     value = value.id
+            elif isinstance(value, datetime):
+                field_dict[field.name] = value.isoformat()
             else:
                 field_dict[field.name] = value
+
         return field_dict

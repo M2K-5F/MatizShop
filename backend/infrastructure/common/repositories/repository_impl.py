@@ -1,9 +1,9 @@
 from dataclasses import Field, asdict, field, fields
 from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, get_type_hints, overload
 from webbrowser import get
-from core.base.entities.entity import Entity
-from core.base.interfaces.repository import Repository
-from infrastructure.base.models.peewee_models import Table, User, database
+from core.common.entities.entity import Entity
+from core.common.interfaces.repository import Repository
+from infrastructure.common.models.peewee_models import Table, User, database
 from peewee import DoesNotExist, ForeignKeyField, Model
 
 TModel = TypeVar('TModel', bound=Table)
@@ -192,7 +192,6 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
 
     def add_fields(self, entity: TEntity):
         model: TModel = self.model.get_by_id(entity.id)
-        data = {}
         annotations = get_type_hints(self.entity)
         for field_name in getattr(self.model, '_meta').fields.keys():
             value = getattr(model, field_name)
@@ -214,4 +213,3 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             else:
                 model_data[key] = value
         return(entity_cls(**model_data))
-

@@ -1,5 +1,5 @@
 from typing import List, Protocol
-from core.base.interfaces.repository import Repository
+from core.common.interfaces.repository import Repository
 from core.modules.flight.entites.city import City
 
 

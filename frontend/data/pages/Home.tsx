@@ -76,7 +76,7 @@ export const Homepage = () => {
 
               <div className="flex items-end">
                 <Button 
-                  disabled={!flight.arrival || !flight.departure} 
+                  disabled={!flight.arrival || !flight.departure || !flight.date} 
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   onClick={() => {
                     navigate(`/flights?arrival=${flight.arrival}&departure=${flight.departure}&date=${flight.date}`)

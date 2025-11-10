@@ -7,8 +7,12 @@ import { Outlet, useNavigate } from "react-router-dom"
 export const AppLayout = () => {
     return(
         <>
-            <NavBar />
-            <Outlet />
+            <div className="flex flex-col h-full">
+                <NavBar />
+                <div className="grow">
+                    <Outlet/>
+                </div>
+            </div>
         </>
     )
 }

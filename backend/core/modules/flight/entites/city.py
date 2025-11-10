@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from ipaddress import NetmaskValueError
-from os import name
-from core.base.entities.entity import Entity
+from core.common.entities.entity import Entity
 
 @dataclass
 class City(Entity):

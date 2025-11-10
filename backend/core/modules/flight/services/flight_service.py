@@ -1,7 +1,5 @@
-from turtle import Turtle
-
-from fastapi import Depends
-from core.base.services.service import Service
+from datetime import datetime
+from core.common.services.service import Service
 from core.modules.auth.entities.user import User
 from core.modules.auth.interfaces.user_repository import UserRepository
 from core.modules.flight.interfaces.airport_repository import AirportRepository
@@ -31,13 +29,19 @@ class FlightService(Service):
     def get_cities_by_query(self, query: str):
         cities = self.city_repo.get_cities_by_query(query)
         return cities
+
     
-    
-    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str):
-        flights = self.flight_repo.get_flights_by_cities(departure_city_tag, arrival_city_tag)
+    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str, date: datetime):
+        flights = self.flight_repo.get_flights_by_cities(departure_city_tag, arrival_city_tag, date)
         for flight in flights:
             self.flight_repo.add_fields(flight)
             self.airport_repo.add_fields(flight.arrival)
             self.airport_repo.add_fields(flight.departure)
             
-        return flights
+        departure_city = self.city_repo.get_or_none(True, tag=departure_city_tag).name
+        arrival_city = self.city_repo.get_or_none(True, tag = arrival_city_tag).name
+        return {
+            "departure": departure_city,
+            "arrival": arrival_city,
+            "flights": flights
+        }

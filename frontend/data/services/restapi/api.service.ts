@@ -1,6 +1,6 @@
 import { UserStore, useUserStore } from "@/stores/useUserStore";
 import { ApiEndpoints } from "./path.config";
-import { AuthForm, City, Flight, RegistrationForm, User, UserResponse } from "@/interfaces/interfaces";
+import { AuthForm, City, Flight, GetFlightsByCitiesResponse, RegistrationForm, User, UserResponse } from "@/interfaces/interfaces";
 
 export class ApiService {
     userStore: UserStore
@@ -94,7 +94,7 @@ export class ApiService {
         )
     }
 
-    getFlightsByCities(departure_city_tag: string, arrival_city_tag: string, date: string): Promise<Flight[]> {
+    getFlightsByCities(departure_city_tag: string, arrival_city_tag: string, date: string): Promise<GetFlightsByCitiesResponse> {
         return this.query(
             ApiEndpoints.getFlightsByCities,
             {
@@ -102,7 +102,7 @@ export class ApiService {
                 body: JSON.stringify({
                     "departure_city_tag": departure_city_tag,
                     "arrival_city_tag": arrival_city_tag,
-                    "date": "2025-11-01T06:26:32.391Z"
+                    "date": date
                 })
             }
         )

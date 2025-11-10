@@ -42,6 +42,12 @@ export interface Plane extends Entity {
     economy_class_ount: number
 }
 
+export interface GetFlightsByCitiesResponse {
+    flights: Flight[]
+    departure: string
+    arrival: string
+}
+
 
 export interface Seat extends Entity {
     seat_class: 'BUSINESS' | 'ECONOMY'
