@@ -7,7 +7,7 @@ from infrastructure.modules.auth.repositories.role_repository_impl import RoleRe
 from infrastructure.modules.auth.repositories.user_reposirory_impl import UserRepositoryImpl
 from infrastructure.modules.auth.repositories.user_role_repository_impl import UserRoleRepositoryImpl
 from infrastructure.modules.flights.city_repository_impl import AirportRepositoryImpl, CityRepositoryImpl
-from infrastructure.modules.flights.flight_repository_impl import FlightRepositoryImpl, UserFlightRopositoryImpl
+from infrastructure.modules.flights.flight_repository_impl import FlightRepositoryImpl, FlightSeatRepositoryImpl, UserFlightRopositoryImpl
 from restapi.token.JWT_config import AuthJWT
 from restapi.token.tokenizer import JWTTokenizer
 from peewee import SqliteDatabase
@@ -39,6 +39,7 @@ class DIContainer():
             AirportRepositoryImpl(),
             UserFlightRopositoryImpl(),
             UserRepositoryImpl(),
+            FlightSeatRepositoryImpl(),
             current_user, 
         )
 

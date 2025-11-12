@@ -12,6 +12,8 @@ import { AppLayout } from "./layouts/AppLayout"
 import { RegistrationPage } from "./pages/Registration"
 import { getPathToRedirect, isPathAvailable } from "./routes/routes"
 import { Toaster } from "sonner"
+import SeatSelectionPage from "./pages/SeatSelectPage"
+import MyTicketsPage from "./pages/MyTicketsPage"
 
 export const getApiService = createContext<null | ApiService>(null)
 
@@ -39,11 +41,11 @@ export const App = () => {
     }, [])
 
     useLayoutEffect(() => {
-        !isPathAvailable(userStore.status) && navigate(getPathToRedirect(userStore.status))
+        !isPathAvailable(userStore.status, userStore.user?.roles) && navigate(getPathToRedirect(userStore.status))
     }, [userStore.status, window.location.pathname])
 
 
-    if (!isPathAvailable(userStore.status)) return null
+    if (!isPathAvailable(userStore.status, userStore.user?.roles)) return null
 
     return(
         <getApiService.Provider value={apiService}>
@@ -56,6 +58,8 @@ export const App = () => {
                 <Route path="/" Component={AppLayout}>
                     <Route index Component={Homepage} />
                     <Route path="/flights" Component={FlightsPage} />
+                    <Route path="/flight" Component={SeatSelectionPage} />
+                    <Route path="/user/tickets" Component={MyTicketsPage} />
                 </Route>
             </Routes>
         </getApiService.Provider>

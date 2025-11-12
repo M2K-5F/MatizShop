@@ -6,5 +6,7 @@ export const ApiEndpoints = {
     getUserMe: BaseURL + '/auth/me',
     logout: BaseURL + '/auth/logout',
     login: BaseURL + '/auth/login',
-    register: BaseURL + '/auth/register'
+    register: BaseURL + '/auth/register',
+    getFlightById: BaseURL + '/flights/flight',
+    getUserFlights: BaseURL + '/flights/user/flights'
 }

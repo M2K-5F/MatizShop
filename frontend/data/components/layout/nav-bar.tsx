@@ -17,7 +17,10 @@ export const NavBar = () => {
                     <span className="text-xl font-bold">AeroLine</span>
                 </div>
                 <div className="flex items-center gap-6">
-                <Button variant="ghost">О нас</Button>
+                {userStore.user?.roles.includes('ADMIN')
+                    ?   <Button variant={'destructive'} onClick={() => {navigate('/admin')}}>Админ-Панель</Button>
+                    :   <Button variant="ghost">О нас</Button>
+                }
                 {userStore.user
                     ?   <UserProfile />
                     :   <Button onClick={() => {navigate('/users/auth')}}>Войти</Button>

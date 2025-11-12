@@ -36,8 +36,8 @@ export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callback
             flight => {
                 const departureHour = parseInt(flight.departure_time.split('T')[1].split(':')[0])
                 const isPriceValid = 
-                    (filters.min === null || flight.price >= filters.min) &&
-                    (filters.max === null || flight.price <= filters.max) 
+                    (filters.min === null || flight.min_price >= filters.min) &&
+                    (filters.max === null || flight.min_price <= filters.max) 
 
                 const isRangeValid = 
                     filters.ranges.length === 0 || 
@@ -96,7 +96,7 @@ export const FlightFilter = ({flights, callbackfn}: {flights: Flight[], callback
                 <div>
                 <Label className="text-sm font-medium mb-3 block">Время вылета</Label>
                 <div className="grid grid-cols-2 gap-2">
-                    {(timeRanges) .map((time, index) => (
+                    {timeRanges.map((time, index) => (
                     <Button 
                         key={time.label} 
                         variant={filters.ranges.includes(time) ? 'default' : 'outline'} 

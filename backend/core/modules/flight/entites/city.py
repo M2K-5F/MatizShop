@@ -7,6 +7,7 @@ class City(Entity):
     name: str
     country: str
 
+
 @dataclass
 class Airport(Entity):
     code: str

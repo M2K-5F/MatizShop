@@ -68,15 +68,16 @@ class Flight(Table):
     departure_time = DateTimeField()
     arrival_time = DateTimeField()
     duration = TimeField()
-    price = IntegerField()
+    min_price = IntegerField()
     seats_left = IntegerField()
     plane = ForeignKeyField(Plane)
-    flight_class = CharField()
+    allowed_business = BooleanField(default=True)
 
 
 class FlightSeat(Table):
     seat = ForeignKeyField(Seat)
     flight = ForeignKeyField(Flight)
+    price = IntegerField()
 
 
 class UserFlight(Table):
@@ -92,7 +93,7 @@ def main():
         City, Airport, Flight , User
     ])
 
-    create_base_users(User, Role, UserRole)
+    admin = create_base_users(User, Role, UserRole)
     create_base_locations(Airport, City)
     mc_21, mc_21_seats_count = create_base_planes(Plane, Seat)
 
@@ -102,40 +103,32 @@ def main():
         arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
         departure_time = datetime(2025, 11, 20, 10, 00, 00),
         arrival_time = datetime(2025, 11, 20, 20),
+        min_price = 15000,
         duration = timedelta(hours=10),
-        price = 15000,
         seats_left = mc_21_seats_count,
         plane = mc_21,
-        flight_class = "BUSINESS"
+        allowed_business = True
     )
 
     business_seats = list(Seat.select().where(Seat.plane == mc_21, Seat.seat_class == 'BUSINESS'))
-    for seat in business_seats:
-        FlightSeat.get_or_create(
+    for index, seat in enumerate(business_seats):
+        flight_seat, _ = FlightSeat.get_or_create(
             flight = created_business_flight,
             seat = seat,
+            price = 45000
         )
-
-    
-    created_business_flight, _ = Flight.get_or_create(
-        tag = 'WS228',
-        departure = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == "MOW")),
-        arrival = Airport.get_or_none(Airport.city == City.get_or_none(City.tag == 'IST')),
-        departure_time = datetime(2025, 11, 20, 10),
-        arrival_time = datetime(2025, 11, 20, 20),
-        duration = timedelta(hours=10),
-        price = 15000,
-        seats_left = mc_21_seats_count,
-        plane = mc_21,
-        flight_class = "ECONOMY"
-    )
-
+        if not index:
+            UserFlight.get_or_create(
+                flight_seat = flight_seat,
+                user = admin
+            )
     
     economy_seats = list(Seat.select().where(Seat.plane == mc_21, Seat.seat_class == 'ECONOMY'))
     for seat in economy_seats:
         FlightSeat.get_or_create(
             flight = created_business_flight,
             seat = seat,
+            price = 15000
         )
 
 if __name__ == '__main__':

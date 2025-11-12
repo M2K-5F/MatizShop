@@ -23,3 +23,11 @@ def create_base_users(User, Role, UserRole):
         user = base_admin,
         role = admin_role
     )
+
+    
+    _, _ = UserRole.get_or_create(
+        user = base_admin,
+        role = customer_role
+    )
+
+    return base_admin

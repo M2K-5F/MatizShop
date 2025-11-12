@@ -190,10 +190,12 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         return self._to_entity(model)
     
 
-    def add_fields(self, entity: TEntity):
+    def add_fields(self, entity: TEntity, exclude: Optional[List[str]] = []):
         model: TModel = self.model.get_by_id(entity.id)
         annotations = get_type_hints(self.entity)
         for field_name in getattr(self.model, '_meta').fields.keys():
+            if field_name in exclude:
+                continue
             value = getattr(model, field_name)
             annotated_cls = annotations[field_name]
             if isinstance(value, Table):

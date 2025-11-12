@@ -1,6 +1,6 @@
 import { UserStore, useUserStore } from "@/stores/useUserStore";
 import { ApiEndpoints } from "./path.config";
-import { AuthForm, City, Flight, GetFlightsByCitiesResponse, RegistrationForm, User, UserResponse } from "@/interfaces/interfaces";
+import { AuthForm, City, Flight, GetFlightByIdResponse, GetFlightsByCitiesResponse, RegistrationForm, User, UserResponse, UserTicket } from "@/interfaces/interfaces";
 
 export class ApiService {
     userStore: UserStore
@@ -107,4 +107,22 @@ export class ApiService {
             }
         )
     }
-}
+
+
+    getFlightById(flight_id: number): Promise<GetFlightByIdResponse> {
+        return this.query(
+            ApiEndpoints.getFlightById,
+            {
+                queries: {
+                    flight_id: flight_id
+                }
+            }
+        )
+    }
+
+    getUserFlights(): Promise<UserTicket[]> {
+        return this.query(
+            ApiEndpoints.getUserFlights,
+        )
+    }
+} 

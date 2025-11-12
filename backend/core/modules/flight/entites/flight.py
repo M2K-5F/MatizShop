@@ -18,16 +18,17 @@ class Flight(Entity):
     departure_time: datetime.datetime
     arrival_time: datetime.datetime
     duration: timedelta
-    price: int
+    min_price: int
     seats_left: int
     plane: Plane
-    flight_class: str
+    allowed_business: bool
 
 
 @dataclass
 class FlightSeat(Entity):
     seat: Seat
     flight: Flight
+    price: int
 
 
 @dataclass

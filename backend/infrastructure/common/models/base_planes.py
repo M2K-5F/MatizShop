@@ -1,8 +1,8 @@
 def create_base_planes(Plane, Seat):
     mc_21_plane, _ = Plane.get_or_create(
         name = 'MC-21',
-        business_class_count = 10,
-        economy_class_count = 15
+        business_class_count = 12,
+        economy_class_count = 40
     )
 
     for i in range(mc_21_plane.business_class_count):

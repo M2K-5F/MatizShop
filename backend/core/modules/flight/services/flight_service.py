@@ -1,10 +1,11 @@
 from datetime import datetime
+from core.common.entities.entity import Entity
 from core.common.services.service import Service
 from core.modules.auth.entities.user import User
 from core.modules.auth.interfaces.user_repository import UserRepository
 from core.modules.flight.interfaces.airport_repository import AirportRepository
 from core.modules.flight.interfaces.city_repository import CityRepository
-from core.modules.flight.interfaces.flight_repository import FlightRepository
+from core.modules.flight.interfaces.flight_repository import FlightRepository, FlightSeatRepository
 from core.modules.flight.interfaces.user_flight_repository import UserFlightRepository
 
 
@@ -16,10 +17,12 @@ class FlightService(Service):
         airport_repo: AirportRepository,
         user_flight_repository: UserFlightRepository,
         user_repository: UserRepository,
+        flight_seat_repo: FlightSeatRepository,
         current_user: User,
     ):
         super().__init__(user_repository)
         self.__user_init__(current_user)
+        self.flight_seat = flight_seat_repo
         self.flight_repo = flight_repo
         self.city_repo = city_repo
         self.airport_repo = airport_repo
@@ -45,3 +48,23 @@ class FlightService(Service):
             "arrival": arrival_city,
             "flights": flights
         }
+    
+    def get_flight_with_seats(self, flight_id: int):
+        flight = self.flight_repo.get_by_id(flight_id, True)
+        self.flight_repo.add_fields(flight)
+        
+        seats = self.flight_seat.select(flight=flight)
+        for seat in seats:
+            self.flight_seat.add_fields(seat, exclude=['flight'])
+        
+        return {"flight": flight.to_dict(), "seats": [seat.to_dict(exclude=['flight', "created_at"]) for seat in seats]}
+    
+
+    def get_user_flights(self):
+        user_flights = self.user_flight_repository.select(user = self.current_user)
+        for uf in user_flights:
+            self.user_flight_repository.add_fields(uf, exclude=['user'])
+            self.flight_seat.add_fields(uf.flight_seat)
+            self.flight_repo.add_fields(uf.flight_seat.flight)
+
+        return [uf.to_dict(30) for uf in user_flights]

@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
 from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
@@ -21,7 +22,6 @@ app_router.include_router(flight_router)
 app.include_router(app_router)
 
 
-
 add_refresh_middleware(app, DI.get_jwt_tokenizer())
 add_middleware(app, DI.get_auth_service(), DI.get_jwt_tokenizer())
 app.add_middleware(
@@ -32,6 +32,7 @@ app.add_middleware(
         allow_headers=["*"],
     )
 
+app.add_middleware(GZipMiddleware, minimum_size = 1000)
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: ValidationError):

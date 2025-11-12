@@ -21,11 +21,13 @@ import { useUserStore } from "@/stores/useUserStore"
 import { Button } from "../ui/button"
 import { use } from "react"
 import { getApiService } from "@/App"
+import { useNavigate } from "react-router-dom"
 
 
 export const UserProfile = () => {
     const userStore = useUserStore()
     const apiService = use(getApiService)
+    const navigate = useNavigate()
     
 
     const getInitials = (name: string) => {
@@ -93,7 +95,7 @@ export const UserProfile = () => {
 
                 <DropdownMenuItem 
                 className="cursor-pointer py-3"
-                //   onClick={onBookingsClick}
+                onClick={() => navigate('/user/tickets')}
                 >
                     <Plane className="w-4 h-4 mr-2" />
                     <span>Мои бронирования</span>

@@ -1,6 +1,6 @@
 interface Entity {
     id: number
-    created_at: string
+    created_at?: string
 }
 
 
@@ -14,6 +14,10 @@ export interface User extends Entity{
     emailAddress: string
 }
 
+export interface UserTicket extends Entity {
+    flight_seat: FlightSeat
+    user: number
+}
 
 export interface UserResponse extends Entity {
     phone_number: number
@@ -39,7 +43,7 @@ export interface RegistrationForm {
 export interface Plane extends Entity {
     name: string
     business_class_count: number
-    economy_class_ount: number
+    economy_class_count: number
 }
 
 export interface GetFlightsByCitiesResponse {
@@ -71,16 +75,17 @@ export interface Flight extends Entity {
     departure_time: string
     arrival_time: string
     duration: string
-    price: number
     seats_left: number
     plane: Plane
-    flight_class: "BUSINESS"|"ECONOMY"
+    min_price: number
+    allowed_business: boolean
 }
 
 
 export interface FlightSeat extends Entity {
     seat: Seat
     flight: Flight
+    price: number
 }
 
 
@@ -89,4 +94,10 @@ export interface City extends Entity {
     tag: string  
     name: string
     country: string
+}
+
+
+export interface GetFlightByIdResponse {
+    flight: Flight
+    seats: FlightSeat[]
 }

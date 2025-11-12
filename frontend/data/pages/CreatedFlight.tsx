@@ -3,8 +3,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Flight } from "@/interfaces/interfaces"
 import { Clock, Plane, Users } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 export const CreatedFlight = ({flight, formatDate}: {flight: Flight, formatDate: Function}) => {
+    const navigate = useNavigate()
+
+
     return(
         <Card key={flight.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
@@ -20,8 +24,8 @@ export const CreatedFlight = ({flight, formatDate}: {flight: Flight, formatDate:
                                 <p className="text-sm text-gray-600">{flight.tag}</p>
                             </div>
                             
-                            <Badge variant={flight.flight_class === 'BUSINESS' ? "default" : "secondary"}>
-                                {flight.flight_class === 'BUSINESS' ? "Бизнес" : "Эконом"}
+                            <Badge variant={flight.allowed_business ? "default" : "secondary"}>
+                                {flight.allowed_business ? "Бизнес" : "Эконом"}
                             </Badge>
                         </div>
 
@@ -55,14 +59,17 @@ export const CreatedFlight = ({flight, formatDate}: {flight: Flight, formatDate:
 
                     <div className="text-right ml-6">
                         <div className="mb-2">
-                            <div className="text-2xl font-bold text-blue-600">{flight.price.toLocaleString()} ₽</div>
+                            <div className="text-2xl font-bold text-blue-600" >От {flight.min_price.toLocaleString()} ₽</div>
                             <div className="text-sm text-gray-600">за пассажира</div>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 justify-end">
                             <Users className="w-4 h-4" />
                             <span>Осталось {flight.seats_left} мест</span>
                         </div>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Button
+                            className="bg-blue-600 hover:bg-blue-700"
+                            onClick={() => navigate(`/flight?flight_id=${flight.id}`)}
+                        >
                         Выбрать
                         </Button>
                     </div>
