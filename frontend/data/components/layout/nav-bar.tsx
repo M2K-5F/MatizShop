@@ -12,13 +12,20 @@ export const NavBar = () => {
         <nav className="border-b">
             <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-                <div onClick={() => {navigate('/')}} className="flex items-center cursor-pointer gap-2">
-                    <Plane className="w-8 h-8 text-blue-600" />
-                    <span className="text-xl font-bold">AeroLine</span>
+                <div className="flex flex-row">
+                    <div onClick={() => {navigate('/')}} className="flex items-center cursor-pointer gap-2">
+                        <Plane className="w-8 h-8 text-blue-600" />
+                        <span className="text-xl font-bold">AeroLine</span>
+                    </div>
+                    {window.location.pathname === '/admin' &&
+                        <span className="pt-1 content-center mx-2 font-bold text-red-600">ADMIN-PANEL</span>
+                    }
                 </div>
                 <div className="flex items-center gap-6">
                 {userStore.user?.roles.includes('ADMIN')
-                    ?   <Button variant={'destructive'} onClick={() => {navigate('/admin')}}>Админ-Панель</Button>
+                    ?   window.location.pathname === '/admin'
+                        ?   <></>
+                        :   <Button variant={'destructive'} onClick={() => {navigate('/admin')}}>Админ-Панель</Button>
                     :   <Button variant="ghost">О нас</Button>
                 }
                 {userStore.user

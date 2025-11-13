@@ -59,7 +59,7 @@ export default function FlightsPage() {
 
     if (loading) return (
         <div className="h-full">
-            <Loader variant='success' />
+            <Loader/>
         </div>
     )
 

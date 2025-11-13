@@ -19,10 +19,11 @@ export default function SeatSelectionPage() {
   const [params] = useSearchParams()
   const flightId = Number(params.get('flight_id'))
 
-  const getSeatColor = (seat: Seat, isSelected: boolean) => {
+  const getSeatColor = (seat: FlightSeat, isSelected: boolean) => {
       if (isSelected) return "bg-blue-600 text-white hover:bg-blue-700"
-      if (seat.seat_class === "BUSINESS") return "bg-purple-500 hover:bg-purple-600 text-white"
-      if (seat.seat_class === 'ECONOMY') return "bg-green-500 hover:bg-green-600 text-white"
+      if (seat.is_occupied) return "bg-gray-500 text-white"
+      if (seat.seat.seat_class === "BUSINESS") return "bg-purple-500 hover:bg-purple-600 text-white"
+      if (seat.seat.seat_class === 'ECONOMY') return "bg-green-500 hover:bg-green-600 text-white"
   }
   
 
@@ -43,12 +44,17 @@ export default function SeatSelectionPage() {
     })
   }
 
-
-  useEffect(() => {
-    apiService?.getFlightById(flightId)
+  const fetchData = (flight_id: number) => {
+    apiService?.getFlightById(flight_id)
       .then((data) => {
+        setSelectedSeat(null)
         setFlight(data)
       })
+  }
+
+
+  useEffect(() => {
+    fetchData(flightId)
   }, [])
   
 
@@ -91,13 +97,20 @@ export default function SeatSelectionPage() {
                     <div className="w-4 h-4 bg-blue-600 rounded"></div>
                     <span className="text-sm">Выбранное место</span>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-purple-500 rounded"></div>
                     <span className="text-sm">Бизнес-класс</span>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-500 rounded"></div>
                     <span className="text-sm">Эконом-класс</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-500 rounded"></div>
+                    <span className="text-sm">Занято</span>
                   </div>
                 </div>
 
@@ -120,10 +133,10 @@ export default function SeatSelectionPage() {
                               return (
                                 <button
                                   key={seat.id}
-                                  onClick={() => setSelectedSeat(isSelected ? null : seat)}
+                                  onClick={() => !seat.is_occupied && setSelectedSeat(isSelected ? null : seat)}
                                   className={clsx(
                                     "w-10 h-10 rounded text-xs font-medium transition-all",
-                                    `${getSeatColor(seat.seat, isSelected)}`,
+                                    `${getSeatColor(seat, isSelected)}`,
                                     `${isSelected ? 'ring-2 ring-offset-1 ring-blue-400' : ''}`
                                   )}
                                 >
@@ -146,20 +159,18 @@ export default function SeatSelectionPage() {
                         ))}
                       </div>
 
-                      {/* Правая сторона - места C и D */}
                       <div className="flex flex-col gap-3">
                         {groupedSeats.map((row, rowIndex) => (
                           <div key={rowIndex} className="flex gap-3">
-                            {/* Места C и D (правая сторона) */}
                             {row.slice(2, 4).map((seat) => {
                               const isSelected = selectedSeat?.id === seat.id
                               return (
                                 <button
                                   key={seat.id}
-                                  onClick={() => setSelectedSeat(isSelected ? null : seat)}
+                                  onClick={() => !seat.is_occupied && setSelectedSeat(isSelected ? null : seat)}
                                   className={`
                                     w-10 h-10 rounded text-xs font-medium transition-all
-                                    ${getSeatColor(seat.seat, isSelected)}
+                                    ${getSeatColor(seat, isSelected)}
                                     ${isSelected ? 'ring-2 ring-offset-1 ring-blue-400' : ''}
                                   `}
                                 >
@@ -266,7 +277,7 @@ export default function SeatSelectionPage() {
                     <span>{selectedSeat ? selectedSeat.price.toLocaleString() + '₽' : 'Место не выбрано'}</span>
                   </div>
                   
-                  <PaymentDialog selectedSeat={selectedSeat} flightData={flightData} />
+                  <PaymentDialog selectedSeat={selectedSeat} successCallback={() => {fetchData(flightId)}} flightData={flightData} />
 
                   <div className="text-xs text-gray-500 text-center">
                     Выберите место для продолжения

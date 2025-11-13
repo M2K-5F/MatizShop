@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import List, Protocol
 from core.common.interfaces.repository import Repository
 from core.modules.flight.entites.flight import UserFlight
 

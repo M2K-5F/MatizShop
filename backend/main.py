@@ -11,6 +11,7 @@ from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
 from restapi.modules.auth.controllers import auth_router
 from restapi.modules.flight.controllers import flight_router
+from restapi.modules.admin.controllers import admin_router
 from containers import DI
 
 
@@ -19,7 +20,9 @@ app = FastAPI()
 app_router = APIRouter(prefix=API_PREFIX)
 app_router.include_router(auth_router)
 app_router.include_router(flight_router)
+app_router.include_router(admin_router)
 app.include_router(app_router)
+
 
 
 add_refresh_middleware(app, DI.get_jwt_tokenizer())

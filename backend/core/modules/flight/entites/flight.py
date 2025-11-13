@@ -29,6 +29,7 @@ class FlightSeat(Entity):
     seat: Seat
     flight: Flight
     price: int
+    is_occupied: bool
 
 
 @dataclass

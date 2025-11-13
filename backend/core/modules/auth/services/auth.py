@@ -82,3 +82,18 @@ class AuthService():
                 return True
             
             return False
+    
+
+    def get_users_count(self):
+        return self.user.count()
+    
+
+    def get_admin_list(self):
+        user_roles = self.user_role.select(role = self.role.get_admin_role())
+        for ur in user_roles:
+            self.user_role.add_fields(ur)
+            ur.user.roles = self.user.get_user_roles(ur.user)
+            
+        admins = [ur.user.to_dict(exclude=['created_at', 'password_hash']) for ur in user_roles]
+        return admins
+    

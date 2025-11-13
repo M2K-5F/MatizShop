@@ -1,10 +1,10 @@
-import { status, User } from '@/interfaces/interfaces'
+import { status, User, UserForStore } from '@/interfaces/interfaces'
 import { create } from 'zustand'
 
 export interface UserStore {
-    user: User | undefined
+    user: UserForStore | undefined
     status: status
-    addUser: (user: User) => void
+    addUser: (user: UserForStore) => void
     removeUser: () => void
     setUnavailable: () => void
     setForbidden: () => void
@@ -14,7 +14,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
     status: 'undefined',
     user: undefined,
 
-    addUser: (user: User) => {
+    addUser: (user: UserForStore) => {
         set({status: 'authorized', user: user})
     },
 

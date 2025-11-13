@@ -1,6 +1,6 @@
 // components/PaymentDialog.tsx
-import { ChangeEvent, Dispatch, SetStateAction, useLayoutEffect, useState } from "react"
-import { FlightSeat, GetFlightByIdResponse } from "@/interfaces/interfaces"
+import { ChangeEvent, Dispatch, SetStateAction, use, useLayoutEffect, useState } from "react"
+import { Flight, FlightSeat, GetFlightByIdResponse } from "@/interfaces/interfaces"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,10 +19,12 @@ import {
 import { CreditCard, User, Shield, Check, LucideLoader2 } from "lucide-react"
 import { set, useForm, UseFormReturn } from "react-hook-form"
 import { ErrorMessage } from "@/components/ui/error-message"
+import { getApiService } from "@/App"
 
 interface PaymentDialogProps {
     selectedSeat: FlightSeat | null
-    flightData: GetFlightByIdResponse
+    flightData: GetFlightByIdResponse,
+    successCallback: () => void
 }
 
 interface CardForm {
@@ -35,11 +37,13 @@ interface CardForm {
 
 export function PaymentDialog({
     selectedSeat, 
-    flightData 
+    flightData,
+    successCallback
 }: PaymentDialogProps) {
     const [open, setOpen] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
+    const service = use(getApiService)
 
     const handlePurchase = async () => {
         if (!selectedSeat) return
@@ -47,14 +51,16 @@ export function PaymentDialog({
         setIsProcessing(true)
         
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000))
+            await service?.buyTicket(selectedSeat.seat.id)
             
+
             setIsSuccess(true)
             setOpen(false)
             setIsProcessing(false)
 
             setTimeout(() => {
                 setIsSuccess(false)
+                successCallback()
             }, 3000)
 
         } catch (error) {
@@ -94,7 +100,9 @@ const PaymentDialogContent = ({
     selectedSeat, flightData, 
     isProcessing, handlePurchase, 
     setOpen, open
-}: PaymentDialogProps & {
+}: {
+    selectedSeat: FlightSeat | null
+    flightData: GetFlightByIdResponse
     isProcessing: boolean
     handlePurchase: () => {},
     setOpen: Dispatch<SetStateAction<boolean>>

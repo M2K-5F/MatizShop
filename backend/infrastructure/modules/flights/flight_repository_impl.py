@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from infrastructure.common.models.peewee_models import Airport, City, Flight, FlightSeat, UserFlight
 from infrastructure.common.repositories.repository_impl import RepositoryImpl
 from core.modules.flight.entites.flight import UserFlight as UserFlightEntity
@@ -36,6 +37,10 @@ class FlightRepositoryImpl(RepositoryImpl[Flight, FlightEntity]):
 class FlightSeatRepositoryImpl(RepositoryImpl[FlightSeat, FlightSeatE]):
     def __init__(self):
         super().__init__(FlightSeat, FlightSeatE)
+        
+    
+    def get_tickets_list(self) -> List[FlightSeatE]:
+        return list(self.model.select().where(self.model.is_occupied == True))
 
 
 

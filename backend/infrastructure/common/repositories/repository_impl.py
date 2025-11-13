@@ -1,6 +1,5 @@
 from dataclasses import Field, asdict, field, fields
 from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, get_type_hints, overload
-from webbrowser import get
 from core.common.entities.entity import Entity
 from core.common.interfaces.repository import Repository
 from infrastructure.common.models.peewee_models import Table, User, database
@@ -176,7 +175,11 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
                 existing = self.model.get_by_id(entity.id)
                 for field in existing._meta.fields.keys():
                     if hasattr(entity, field):
-                        setattr(existing, field, getattr(entity, field))
+                        value = getattr(entity, field)
+                        if isinstance(value, Entity):
+                            setattr(existing, field, getattr(value, (getattr(self.model, field).rel_field.name)))
+                        else:
+                            setattr(existing, field, value)
                 existing.save()
                 return self._to_entity(existing)
             except DoesNotExist: ...
@@ -189,7 +192,7 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             
         return self._to_entity(model)
     
-
+    
     def add_fields(self, entity: TEntity, exclude: Optional[List[str]] = []):
         model: TModel = self.model.get_by_id(entity.id)
         annotations = get_type_hints(self.entity)

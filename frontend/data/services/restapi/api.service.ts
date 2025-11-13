@@ -1,6 +1,6 @@
 import { UserStore, useUserStore } from "@/stores/useUserStore";
 import { ApiEndpoints } from "./path.config";
-import { AuthForm, City, Flight, GetFlightByIdResponse, GetFlightsByCitiesResponse, RegistrationForm, User, UserResponse, UserTicket } from "@/interfaces/interfaces";
+import { AdminStatsResponse, Airport, AuthForm, City, CreateFlightForm, Flight, GetFlightByIdResponse, GetFlightsByCitiesResponse, RegistrationForm, User, UserResponse, UserTicket } from "@/interfaces/interfaces";
 
 export class ApiService {
     userStore: UserStore
@@ -123,6 +123,52 @@ export class ApiService {
     getUserFlights(): Promise<UserTicket[]> {
         return this.query(
             ApiEndpoints.getUserFlights,
+        )
+    }
+
+    buyTicket(seat_id: number): Promise<UserTicket> {
+        return this.query(
+            ApiEndpoints.buySeat(seat_id), {
+                method: 'post',
+            }
+        )
+    }
+
+    getSummaryStats(): Promise<AdminStatsResponse> {
+        return this.query(
+            ApiEndpoints.getSummaryStats,
+        )
+    }
+
+    getAdminsStats(): Promise<User[]> {
+        return this.query(
+            ApiEndpoints.getAdminsStats,
+        )
+    }
+
+    getFlightsStats(): Promise<Flight[]> {
+        return this.query(
+            ApiEndpoints.getFlightsStats
+        )
+    }
+
+    getAirportsByTag(tag: string): Promise<Airport[]> {
+        return this.query(
+            ApiEndpoints.getAirportsByTag,
+            {
+                queries: {tag: tag}
+            }
+        )
+    }
+
+
+    createFlight(flightData: CreateFlightForm) {
+        return this.query(
+            ApiEndpoints.createFlight,
+            {
+                method: 'post',
+                body: JSON.stringify(flightData)
+            }
         )
     }
 } 

@@ -8,6 +8,14 @@ export type role = 'ADMIN' | 'CUSTOMER'
 export type status = 'authorized' | "forbidden" | "unauthorized" | "undefined" | "serverunavailable"
 
 export interface User extends Entity{
+    phone_number: number
+    username: string
+    roles: role[]
+    email_address: string
+}
+
+
+export interface UserForStore extends Entity {
     phoneNumber: number
     username: string
     roles: role[]
@@ -19,11 +27,14 @@ export interface UserTicket extends Entity {
     user: number
 }
 
-export interface UserResponse extends Entity {
-    phone_number: number
-    username: string
-    roles: role[]
-    email_address: string
+export interface UserResponse extends User {}
+
+
+export interface AdminStatsResponse {
+    users_count: number
+    flights_count: number
+    tickets_count: number
+    total_revenue: number
 }
 
 
@@ -86,6 +97,7 @@ export interface FlightSeat extends Entity {
     seat: Seat
     flight: Flight
     price: number
+    is_occupied: boolean
 }
 
 
@@ -100,4 +112,17 @@ export interface City extends Entity {
 export interface GetFlightByIdResponse {
     flight: Flight
     seats: FlightSeat[]
+}
+
+export interface CreateFlightForm {
+    tag: string
+    departure_city: City | null
+    arrival_city: City | null
+    departure_airport_id: number | null
+    arrival_airport_id: number | null
+    departure_time: string
+    arrival_time: string
+    plane_id: number
+    min_price: string
+    allowed_business: boolean
 }

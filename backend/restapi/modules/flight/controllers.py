@@ -42,3 +42,12 @@ async def get_user_flights(
     txn = Depends(with_transaction)
 ):
     return service.get_user_flights()
+
+
+@flight_router.post('/occupie/{seat_id}')
+async def occupie_seat(
+    seat_id: int,
+    service: FlightService = Depends(get_flight_service),
+    txn = Depends(with_transaction),
+):
+    return service.create_user_flight(seat_id)

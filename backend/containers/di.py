@@ -1,4 +1,5 @@
 from functools import lru_cache
+from core.modules.admin.services.admin_service import AdminService
 from core.modules.auth.entities.user import User
 from core.modules.auth.services.auth import AuthService
 from core.modules.flight.services.flight_service import FlightService
@@ -8,6 +9,7 @@ from infrastructure.modules.auth.repositories.user_reposirory_impl import UserRe
 from infrastructure.modules.auth.repositories.user_role_repository_impl import UserRoleRepositoryImpl
 from infrastructure.modules.flights.city_repository_impl import AirportRepositoryImpl, CityRepositoryImpl
 from infrastructure.modules.flights.flight_repository_impl import FlightRepositoryImpl, FlightSeatRepositoryImpl, UserFlightRopositoryImpl
+from infrastructure.modules.flights.plane_repository_impl import PlaneRopositoryImpl, SeatRopositoryImpl
 from restapi.token.JWT_config import AuthJWT
 from restapi.token.tokenizer import JWTTokenizer
 from peewee import SqliteDatabase
@@ -32,6 +34,7 @@ class DIContainer():
             self.get_hasher()
         )
     
+    
     def get_flight_service(self, current_user: User):
         return FlightService(
             FlightRepositoryImpl(),
@@ -41,6 +44,15 @@ class DIContainer():
             UserRepositoryImpl(),
             FlightSeatRepositoryImpl(),
             current_user, 
+            PlaneRopositoryImpl(),
+            SeatRopositoryImpl()
+        )
+    
+
+    def get_admin_service(self, current_user: User):
+        return AdminService(
+            self.get_auth_service(),
+            self.get_flight_service(current_user)
         )
 
 

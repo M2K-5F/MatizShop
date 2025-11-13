@@ -78,6 +78,7 @@ class FlightSeat(Table):
     seat = ForeignKeyField(Seat)
     flight = ForeignKeyField(Flight)
     price = IntegerField()
+    is_occupied = BooleanField(default=False)
 
 
 class UserFlight(Table):
