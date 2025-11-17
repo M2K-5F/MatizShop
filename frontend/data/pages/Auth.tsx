@@ -1,4 +1,4 @@
-import { getApiService } from "@/App"
+import { getApiService, useApiService } from "@/App"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,7 +22,7 @@ export const AuthPage = () => {
             password: params.get('pwd') || ''
         }})
     const userStore = useUserStore()
-    const apiService = use(getApiService)
+    const apiService = useApiService()
 
     const handleAuth = (authData: AuthForm) => {
         apiService?.login(authData)

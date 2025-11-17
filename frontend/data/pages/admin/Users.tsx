@@ -5,31 +5,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { User } from '@/interfaces/interfaces';
-import { getApiService } from '@/App';
+import { getApiService, useApiService } from '@/App';
 import { Loader } from '@/components/ui/loader';
+import {useQuery} from '@tanstack/react-query'
 
 export default function UsersTable() {
-    const [loading, setLoading] = useState(true)
-    const [stats, setStats] = useState<User[]>([])
-    const service = use(getApiService)
+    const service = useApiService()
 
-    const fetchStats = async () => {
-        try {
-            setLoading(true)
-            const stats = await service!.getAdminsStats()
-            setStats(stats)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const {data: stats = [], isLoading} = useQuery({
+        queryFn: () => service.getAdminsStats(),
+        queryKey: ['admins'],
+        staleTime: 1000 * 60,
+    })
 
 
-    useEffect(() => {
-        fetchStats()
-    }, [])
-
-
-    if (loading) {
+    if (isLoading) {
         return <Loader />
     }
 
@@ -45,7 +35,7 @@ export default function UsersTable() {
                     </div>
                     <Button>
                         <Plus className="w-4 h-4 mr-2" />
-                        Добавить пользователя
+                        Добавить админа
                     </Button>
                 </div>
             </CardHeader>

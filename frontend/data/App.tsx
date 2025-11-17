@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
 import { ApiService } from "./services/restapi/api.service"
 import { useUserStore } from "./stores/useUserStore"
-import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Homepage } from "./pages/Home"
 import FlightsPage from "./pages/Flights"
 import { Plane } from "lucide-react"
@@ -17,15 +17,27 @@ import MyTicketsPage from "./pages/MyTicketsPage"
 import clsx from "clsx"
 import { Loader } from "./components/ui/loader"
 import AdminLayout from "./pages/admin/AdminPage"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-export const getApiService = createContext<null | ApiService>(null)
+export const getApiService = createContext<ApiService | null>(null)
+const queryClient = new QueryClient()
+
+
+export const useApiService = (): ApiService => {
+    const service = useContext(getApiService);
+    if (!service) {
+        throw new Error('useApiService must be used within ApiServiceProvider');
+    }
+    return service;
+}
+
 
 export const App = () => {
     const [loading, setLoading] = useState(true)
     const userStore = useUserStore()
     const apiService = useMemo(() => {
         return new ApiService(userStore)
-    }, [])
+    }, [userStore])
     const navigate = useNavigate()
 
     
@@ -56,24 +68,26 @@ export const App = () => {
     if (!isPathAvailable(userStore.status, userStore.user?.roles)) return null
 
     return(
-        <getApiService.Provider value={apiService}>
-            <Toaster position='top-center' />
-            {loading
-                ?   <Loader />
-                :   <Routes>
-                        <Route path="/users/*" Component={AuthLayout}>
-                            <Route path="auth" Component={AuthPage} />
-                            <Route path="reg" Component={RegistrationPage} />
-                        </Route>
-                        <Route path="/" Component={AppLayout}>
-                            <Route index Component={Homepage} />
-                            <Route path="/admin" Component={AdminLayout} />
-                            <Route path="/flights" Component={FlightsPage} />
-                            <Route path="/flight" Component={SeatSelectionPage} />
-                            <Route path="/user/tickets" Component={MyTicketsPage} />
-                        </Route>
-                    </Routes>
-            }
-        </getApiService.Provider>
+        <QueryClientProvider client={queryClient}>
+            <getApiService.Provider value={apiService}>
+                <Toaster position='top-center' />
+                {loading
+                    ?   <Loader />
+                    :   <Routes>
+                            <Route path="/users/*" Component={AuthLayout}>
+                                <Route path="auth" Component={AuthPage} />
+                                <Route path="reg" Component={RegistrationPage} />
+                            </Route>
+                            <Route path="/" Component={AppLayout}>
+                                <Route index Component={Homepage} />
+                                <Route path="/admin" Component={AdminLayout} />
+                                <Route path="/flights" Component={FlightsPage} />
+                                <Route path="/flight" Component={SeatSelectionPage} />
+                                <Route path="/user/tickets" Component={MyTicketsPage} />
+                            </Route>
+                        </Routes>
+                }
+            </getApiService.Provider>
+        </QueryClientProvider>
     )
 }

@@ -6,59 +6,28 @@ import { Plane, ArrowLeft } from "lucide-react"
 import { use, useEffect, useState } from "react"
 import { Flight, FlightSeat, GetFlightByIdResponse, Seat } from "@/interfaces/interfaces"
 import { Loader } from "@/components/ui/loader"
-import { getApiService } from "@/App"
+import { getApiService, useApiService } from "@/App"
 import { useSearchParams } from "react-router-dom"
 import clsx from "clsx"
 import { PaymentDialog } from "./PaymentDialog"
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 
 
 export default function SeatSelectionPage() {
   const [selectedSeat, setSelectedSeat] = useState<FlightSeat | null>(null)
-  const [flightData, setFlight] = useState<GetFlightByIdResponse>()
-  const apiService = use(getApiService)
+  const client = useQueryClient()
+  const service = useApiService()
   const [params] = useSearchParams()
   const flightId = Number(params.get('flight_id'))
 
-  const getSeatColor = (seat: FlightSeat, isSelected: boolean) => {
-      if (isSelected) return "bg-blue-600 text-white hover:bg-blue-700"
-      if (seat.is_occupied) return "bg-gray-500 text-white"
-      if (seat.seat.seat_class === "BUSINESS") return "bg-purple-500 hover:bg-purple-600 text-white"
-      if (seat.seat.seat_class === 'ECONOMY') return "bg-green-500 hover:bg-green-600 text-white"
-  }
+  const {data: flightData = {} as GetFlightByIdResponse, isLoading} = useQuery({
+    queryKey: ['flight', flightId],
+    queryFn: () => service.getFlightById(flightId),
+    staleTime: 1000 * 60 * 60
+  })
   
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const fetchData = (flight_id: number) => {
-    apiService?.getFlightById(flight_id)
-      .then((data) => {
-        setSelectedSeat(null)
-        setFlight(data)
-      })
-  }
-
-
-  useEffect(() => {
-    fetchData(flightId)
-  }, [])
-  
-
-  if (!flightData) {
+  if (isLoading) {
     return <Loader />
   }
 
@@ -72,8 +41,7 @@ export default function SeatSelectionPage() {
     return rows
   }, [])
 
-
-
+  
   const totalSeats = flightData.flight.plane.business_class_count + flightData.flight.plane.economy_class_count
   const occupiedSeats = totalSeats - flightData.flight.seats_left
   const occupancyPercentage = (occupiedSeats / totalSeats) * 100
@@ -148,7 +116,6 @@ export default function SeatSelectionPage() {
                         ))}
                       </div>
 
-                      {/* Центр - номера рядов и проход */}
                       <div className="flex flex-col items-center gap-3">
                         {groupedSeats.map((_, rowIndex) => (
                           <div key={rowIndex} className="flex flex-col items-center">
@@ -183,7 +150,6 @@ export default function SeatSelectionPage() {
                       </div>
                     </div>
                     
-                    {/* Хвост самолета */}
                     <div className={clsx(
                         "w-48 h-12 bg-gray-600 rounded-b-full", 
                         "mt-2 border-2 border-gray-700 text-white",
@@ -197,9 +163,7 @@ export default function SeatSelectionPage() {
             </Card>
           </div>
 
-          {/* Боковая панель */}
           <div className="space-y-6">
-            {/* Информация о рейсе */}
             <Card>
               <CardContent className="p-6">
                 <div className="space-y-4">
@@ -277,7 +241,16 @@ export default function SeatSelectionPage() {
                     <span>{selectedSeat ? selectedSeat.price.toLocaleString() + '₽' : 'Место не выбрано'}</span>
                   </div>
                   
-                  <PaymentDialog selectedSeat={selectedSeat} successCallback={() => {fetchData(flightId)}} flightData={flightData} />
+                  <PaymentDialog 
+                    selectedSeat={selectedSeat} 
+                    successCallback={() => {
+                      client.invalidateQueries({
+                        queryKey: ["flight", flightId]
+                      })
+                      setSelectedSeat(null)
+                    }} 
+                    flightData={flightData} 
+                  />
 
                   <div className="text-xs text-gray-500 text-center">
                     Выберите место для продолжения
@@ -290,4 +263,29 @@ export default function SeatSelectionPage() {
       </div>
     </div>
   )
+}
+
+const getSeatColor = (seat: FlightSeat, isSelected: boolean) => {
+    if (isSelected) return "bg-blue-600 text-white hover:bg-blue-700"
+    if (seat.is_occupied) return "bg-gray-500 text-white"
+    if (seat.seat.seat_class === "BUSINESS") return "bg-purple-500 hover:bg-purple-600 text-white"
+    if (seat.seat.seat_class === 'ECONOMY') return "bg-green-500 hover:bg-green-600 text-white"
+}
+
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('ru-RU', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }

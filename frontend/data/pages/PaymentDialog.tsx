@@ -51,7 +51,7 @@ export function PaymentDialog({
         setIsProcessing(true)
         
         try {
-            await service?.buyTicket(selectedSeat.seat.id)
+            await service?.buyTicket(selectedSeat.id)
             
 
             setIsSuccess(true)

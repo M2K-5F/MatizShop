@@ -3,21 +3,22 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { City } from "@/interfaces/interfaces"
 import { Calendar, Search, Plane, Shield, Clock } from "lucide-react"
 import { use, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 
 interface SearchFlight {
-  departure?: string
-  arrival?: string
+  departure: City | null
+  arrival: City | null
   date: string
 }
 
 export const Homepage = () => {
   const [flight, setFlight] = useState<SearchFlight>({
-    departure: undefined, 
-    arrival: undefined, 
+    departure: null, 
+    arrival: null, 
     date: ''
   })
   const navigate = useNavigate()
@@ -50,16 +51,14 @@ export const Homepage = () => {
               <CitySelector
                 label={<><Plane className="w-4 h-4" />Откуда </>}
                 placeholder="Город вылета"
-                onCitySelect={(city) => setFlight({...flight, departure: city.tag})}
-                onCityDrop={() => setFlight({...flight, departure: undefined})}
+                onCityChange={(city) => setFlight(d => ({...d, departure: city}))}
               />
 
               <div>
                 <CitySelector 
                   label={<><Plane className="w-4 h-4 rotate-80" />Куда </>}
                   placeholder="Город назначения"
-                onCitySelect={(city) => setFlight({...flight, arrival: city.tag})}
-                onCityDrop={() => setFlight({...flight, arrival: undefined})}
+                  onCityChange={(city) => setFlight(d => ({...d, arrival: city}))}
                 />
               </div>
 
@@ -79,7 +78,7 @@ export const Homepage = () => {
                   disabled={!flight.arrival || !flight.departure || !flight.date} 
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   onClick={() => {
-                    navigate(`/flights?arrival=${flight.arrival}&departure=${flight.departure}&date=${flight.date}`)
+                    navigate(`/flights?arrival=${flight.arrival?.tag}&departure=${flight.departure?.tag}&date=${flight.date}`)
                   }}
                 >
                   <Search className="w-4 h-4 mr-2" />

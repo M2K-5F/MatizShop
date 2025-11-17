@@ -5,143 +5,76 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ParkingSquareOffIcon, Plane } from 'lucide-react';
+import { ParkingSquareOffIcon, Plane, Tag } from 'lucide-react';
 import { CitySelector } from '@/components/selectors/city-selector';
 import { Airport, City, CreateFlightForm } from '@/interfaces/interfaces';
-import { getApiService } from '@/App';
+import { getApiService, useApiService } from '@/App';
 import { Loader } from '@/components/ui/loader';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 
-const baseFormStats = {
-    tag: '',
-    departure_city: null,
-    arrival_city: null,
-    departure_airport_id: null,
-    arrival_airport_id: null,
-    departure_time: '',
-    arrival_time: '',
-    plane_id: 1, 
-    min_price: '',
-    allowed_business: true
-}
 
-const defaultPlanes = [
-    { name: "MC-21", economy_class_count: 40, business_class_count: 12, id: 1 }
-]
 
 export default function CreateFlightSection() {
-    const [loading, setLoading] = useState(false)
-    const [departureAirports, setDepartureAirports] = useState<Airport[]>([])
-    const [arrivalAirports, setArrivalAirports] = useState<Airport[]>([])
     const [formData, setFormData] = useState<CreateFlightForm>(baseFormStats)
     const navigate = useNavigate()
+    const service = useApiService()
+    const client = useQueryClient()
 
-    const service = use(getApiService)
+    const {data: arrivalAirports = []} = useQuery({
+        queryKey: ['airports', 'arrival', formData.arrival_airport_id],
+        queryFn() {
+            return service.getAirportsByTag(formData.arrival_city!.tag)
+        },
+        enabled: !!formData.arrival_city,
+        staleTime: 1000 * 60 * 5,
+    })
 
-    const handleDepartureCitySelect = async (city: City) => {
+    
+    const {data: departureAirports = []} = useQuery({
+        queryKey: ['airports', 'departure', formData.departure_airport_id],
+        queryFn() {
+            return service.getAirportsByTag(formData.departure_city!.tag)
+        },
+        enabled: !!formData.departure_city,
+        staleTime: 1000 * 60 * 5,
+    })
+
+    const {isPending, mutate} = useMutation({
+        mutationFn(formData: CreateFlightForm) {
+            return service.createFlight(formData)
+        },
+        onSuccess() {
+            client.invalidateQueries({
+                queryKey: ['flights']
+            })
+            navigate('/admin?tab=flights')
+        },
+    })
+
+
+    const handleDepartureCitySelect = async (city: City | null) => {
         setFormData(prev => ({
             ...prev,
             departure_city: city,
             departure_airport_id: null
         }))
-        
-        const airports = await service!.getAirportsByTag(city.tag)
-        setDepartureAirports(airports)
     }
 
-    const handleArrivalCitySelect = async (city: City) => {
+    const handleArrivalCitySelect = async (city: City | null) => {
         setFormData(prev => ({
             ...prev,
             arrival_city: city,
             arrival_airport_id: null
         }))
-        
-        const airports = await service!.getAirportsByTag(city.tag)
-        setArrivalAirports(airports)
-    }
-
-    const handleDepartureCityDrop = () => {
-        setDepartureAirports([])
-        setFormData(prev => ({ ...prev, departure_airport_id: null }))
-    }
-
-    const handleArrivalCityDrop = () => {
-        setArrivalAirports([])
-        setFormData(prev => ({ ...prev, arrival_airport_id: null }))
     }
 
     const handleInputChange = (field: keyof CreateFlightForm, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    const validateForm = (): boolean => {
-        if (!formData.tag.trim()) {
-            toast.error('Введите код рейса')
-            return false
-        }
-        if (!formData.departure_city) {
-            toast.error('Выберите город вылета')
-            return false
-        }
-        if (!formData.arrival_city) {
-            toast.error('Выберите город прибытия')
-            return false
-        }
-        if (!formData.departure_airport_id) {
-            toast.error('Выберите аэропорт вылета')
-            return false
-        }
-        if (!formData.arrival_airport_id) {
-            toast.error('Выберите аэропорт прибытия')
-            return false
-        }
-        if (!formData.departure_time) {
-            toast.error('Введите время вылета')
-            return false
-        }
-        if (!formData.arrival_time) {
-            toast.error('Введите время прибытия')
-            return false
-        }
-        if (!formData.min_price.length) {
-            toast.error('Цена должна быть больше 0')
-            return false
-        }
-
-        return true
-    }
-
-    const handleCreateFlight = async () => {
-        if (!validateForm()) return
-
-        setLoading(true)
-
-        try {
-            await service?.createFlight(formData)
-            navigate('/admin?tab=flights')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const calculateTag = (tag: string) => {
-        tag = tag
-            .replace(/\D/g, '')
-            .slice(0, 3)
-
-        tag = 'SW' + tag
-        return tag
-    }
-
-    const calculatePrice = (price: string) => {
-        price = price
-                .replace(/\D/g, '')
-                .slice(0, 6)
-
-        return price
-    }
 
 
     return (
@@ -181,15 +114,13 @@ export default function CreateFlightSection() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <CitySelector
                         label="Город вылета"
-                        onCitySelect={handleDepartureCitySelect}
-                        onCityDrop={handleDepartureCityDrop}
+                        onCityChange={handleDepartureCitySelect}
                         placeholder="Выберите город вылета"
                     />
 
                     <CitySelector
                         label="Город прибытия"
-                        onCitySelect={handleArrivalCitySelect}
-                        onCityDrop={handleArrivalCityDrop}
+                        onCityChange={handleArrivalCitySelect}
                         placeholder="Выберите город прибытия"
                     />
                 </div>
@@ -292,14 +223,86 @@ export default function CreateFlightSection() {
 
                 <div className="flex justify-end pt-4">
                     <Button 
-                        onClick={handleCreateFlight} 
-                        disabled={loading}
+                        onClick={() => mutate(formData)} 
+                        disabled={isPending}
                         className="min-w-32"
                     >
-                        {loading ? <Loader /> : 'Создать рейс'}
+                        {isPending ? <Loader /> : 'Создать рейс'}
                     </Button>
                 </div>
             </CardContent>
         </Card>
     )
 }
+
+
+const baseFormStats = {
+    tag: '',
+    departure_city: null,
+    arrival_city: null,
+    departure_airport_id: null,
+    arrival_airport_id: null,
+    departure_time: '',
+    arrival_time: '',
+    plane_id: 1, 
+    min_price: '',
+    allowed_business: true
+}
+
+const defaultPlanes = [
+    { name: "MC-21", economy_class_count: 40, business_class_count: 12, id: 1 }
+]
+
+const validateForm = (formData: CreateFlightForm): boolean => {
+    if (!formData.tag.trim()) {
+        toast.error('Введите код рейса')
+        return false
+    }
+    if (!formData.departure_city) {
+        toast.error('Выберите город вылета')
+        return false
+    }
+    if (!formData.arrival_city) {
+        toast.error('Выберите город прибытия')
+        return false
+    }
+    if (!formData.departure_airport_id) {
+        toast.error('Выберите аэропорт вылета')
+        return false
+    }
+    if (!formData.arrival_airport_id) {
+        toast.error('Выберите аэропорт прибытия')
+        return false
+    }
+    if (!formData.departure_time) {
+        toast.error('Введите время вылета')
+        return false
+    }
+    if (!formData.arrival_time) {
+        toast.error('Введите время прибытия')
+        return false
+    }
+    if (!formData.min_price.length) {
+        toast.error('Цена должна быть больше 0')
+        return false
+    }
+
+    return true
+}
+
+const calculateTag = (tag: string) => {
+    tag = tag
+        .replace(/\D/g, '')
+        .slice(0, 3)
+
+    tag = 'SW' + tag
+    return tag
+}
+
+const calculatePrice = (price: string) => {
+    price = price
+            .replace(/\D/g, '')
+            .slice(0, 6)
+
+    return price
+    }

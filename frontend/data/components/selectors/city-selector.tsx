@@ -9,8 +9,7 @@ import { City } from "@/interfaces/interfaces"
 
 export const CitySelector = (props: {
     label: string | JSX.Element,
-    onCitySelect: (city: City) => void,
-    onCityDrop: () => void
+    onCityChange: (city: City | null) => void,
     placeholder: string
 }) => {
     const [cities, setCities] = useState<City[]>([])
@@ -28,7 +27,9 @@ export const CitySelector = (props: {
         const value = e.currentTarget.value
         setInputValue(value)
         setVisible(true)
-        props.onCityDrop()
+
+        props.onCityChange(null)
+
         if (value) {
             getCities(value)
         } else {
@@ -40,7 +41,7 @@ export const CitySelector = (props: {
     const handleSelect = (city: City) => {
         setInputValue(`${city.name}, ${city.country}`)
         setVisible(false)
-        props.onCitySelect(city)
+        props.onCityChange(city)
     }
 
 

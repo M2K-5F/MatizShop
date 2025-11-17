@@ -6,7 +6,7 @@ import { Users, Plane, Calendar, BarChart3, Settings, MapPlus } from 'lucide-rea
 
 import UsersTable from './Users';
 import {FlightsTable} from './FlightsStats';
-import AnalyticsDashboard from './Anal';
+import AnalyticsDashboard from './SummaryAnalithycsPage';
 import { useSearchParams } from 'react-router-dom';
 import CreateFlightSection from './CreateFlightPage';
 

@@ -5,66 +5,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Plus, Plane, Clock, MapPin } from 'lucide-react';
 import { Flight } from '@/interfaces/interfaces';
-import { getApiService } from '@/App';
+import { getApiService, useApiService } from '@/App';
 import { Loader } from '@/components/ui/loader';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+
+
 
 export function FlightsTable() {
-    const [loading, setLoading] = useState(true)
-    const [flights, setFlights] = useState<Flight[]>([])
-    const service = use(getApiService)
+    const service = useApiService()
     const navigate = useNavigate()
 
-    const fetchFlights = async () => {
-        try {
-            setLoading(true)
-            const flightsData = await service!.getFlightsStats()
-            setFlights(flightsData)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const {data: flights = [], isLoading} = useQuery({
+        queryKey: ['flights'],
+        queryFn: () => service.getFlightsStats(),
+        staleTime: 1000 * 60 * 5,
+    })
 
 
-    const formatDateTime = (dateTimeString: string) => {
-        const date = new Date(dateTimeString)
-        return {
-            date: date.toLocaleDateString('ru-RU'),
-            time: date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-        }
-    }
-
-    const getFlightStatus = (departureTime: string, seatsLeft: number) => {
-        const now = new Date()
-        const departure = new Date(departureTime)
-        
-        if (departure < now) {
-            return { status: 'Вылетел', variant: 'secondary' as const }
-        }
-        if (seatsLeft === 0) {
-            return { status: 'Места заняты', variant: 'destructive' as const }
-        }
-        if (seatsLeft < 10) {
-            return { status: 'Мало мест', variant: 'outline' as const }
-        }
-        return { status: 'По расписанию', variant: 'default' as const }
-    }
-    
-    const getRouteInfo = (flight: Flight) => {
-        return {
-            from: `${flight.departure.city.tag} (${flight.departure.code})`,
-            to: `${flight.arrival.city.tag} (${flight.arrival.code})`,
-            fullRoute: `${flight.departure.city.name} → ${flight.arrival.city.name}`
-        }
-    }
-
-
-    useEffect(() => {
-        fetchFlights()
-    }, [])
-
-
-    if (loading) {
+    if (isLoading) {
         return <Loader />
     }
 
@@ -181,7 +140,7 @@ export function FlightsTable() {
                     </TableBody>
                 </Table>
                 
-                {flights.length === 0 && !loading && (
+                {flights.length === 0 && !isLoading && (
                     <div className="text-center py-8 text-muted-foreground">
                         Нет доступных рейсов
                     </div>
@@ -189,4 +148,37 @@ export function FlightsTable() {
             </CardContent>
         </Card>
     )
+}
+
+
+const formatDateTime = (dateTimeString: string) => {
+    const date = new Date(dateTimeString)
+    return {
+        date: date.toLocaleDateString('ru-RU'),
+        time: date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    }
+}
+
+const getFlightStatus = (departureTime: string, seatsLeft: number) => {
+    const now = new Date()
+    const departure = new Date(departureTime)
+    
+    if (departure < now) {
+        return { status: 'Вылетел', variant: 'secondary' as const }
+    }
+    if (seatsLeft === 0) {
+        return { status: 'Места заняты', variant: 'destructive' as const }
+    }
+    if (seatsLeft < 10) {
+        return { status: 'Мало мест', variant: 'outline' as const }
+    }
+    return { status: 'По расписанию', variant: 'default' as const }
+}
+
+const getRouteInfo = (flight: Flight) => {
+    return {
+        from: `${flight.departure.city.tag} (${flight.departure.code})`,
+        to: `${flight.arrival.city.tag} (${flight.arrival.code})`,
+        fullRoute: `${flight.departure.city.name} → ${flight.arrival.city.name}`
+    }
 }
