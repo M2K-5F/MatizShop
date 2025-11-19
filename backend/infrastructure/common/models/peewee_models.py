@@ -8,9 +8,11 @@ from core.modules.flight.interfaces import flight_repository
 from infrastructure.common.models.base_locations import create_base_locations
 from infrastructure.common.models.base_planes import create_base_planes
 from infrastructure.common.models.base_users import create_base_users
+from playhouse.pool import PooledSqliteDatabase
 from infrastructure.common.impls.password_hasher_impl import PasswordHasherImpl
 
-database = SqliteDatabase("SQLite3Database.db")
+
+database = PooledSqliteDatabase("SQLite3Database.db")
 
 
 class Table(Model):

@@ -1,9 +1,14 @@
-from re import A
+import asyncio
+from contextlib import asynccontextmanager
+import selectors
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from granian import Granian
+import granian
+import granian.asgi
+import granian.constants
 from pydantic import ValidationError
-import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
@@ -37,6 +42,7 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size = 1000)
 
+
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: ValidationError):
     return JSONResponse(
@@ -69,5 +75,8 @@ async def attrubute_exception_handler(request: Request, exc: AttributeError):
     )
 
 
-if __name__ == '__main__':
-    uvicorn.run('main:app', host='0.0.0.0', reload=True)
+if __name__ == "__main__":  
+    selector = selectors.SelectSelector()
+    loop = asyncio.SelectorEventLoop(selector)
+    asyncio.set_event_loop(loop)
+    Granian("main:app", address="0.0.0.0", port=8000, interface=granian.constants.Interfaces('asgi')).serve()

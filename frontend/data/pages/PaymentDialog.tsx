@@ -19,7 +19,8 @@ import {
 import { CreditCard, User, Shield, Check, LucideLoader2 } from "lucide-react"
 import { set, useForm, UseFormReturn } from "react-hook-form"
 import { ErrorMessage } from "@/components/ui/error-message"
-import { getApiService } from "@/App"
+import { getApiService, useApiService } from "@/App"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 interface PaymentDialogProps {
     selectedSeat: FlightSeat | null
@@ -41,32 +42,27 @@ export function PaymentDialog({
     successCallback
 }: PaymentDialogProps) {
     const [open, setOpen] = useState(false)
-    const [isProcessing, setIsProcessing] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
-    const service = use(getApiService)
+    const service = useApiService()
+    const client = useQueryClient()
 
-    const handlePurchase = async () => {
-        if (!selectedSeat) return
-        
-        setIsProcessing(true)
-        
-        try {
-            await service?.buyTicket(selectedSeat.id)
-            
+
+    const {mutate, isPending} = useMutation({
+        mutationFn: (selectedSeatId: number) => service.buyTicket(selectedSeatId),
+        onSuccess: () => {
+            client.invalidateQueries({
+                queryKey: ['flights']
+            })
 
             setIsSuccess(true)
             setOpen(false)
-            setIsProcessing(false)
 
             setTimeout(() => {
                 setIsSuccess(false)
                 successCallback()
             }, 3000)
-
-        } catch (error) {
-            setIsProcessing(false)
         }
-    }
+    })
 
 
     return (
@@ -83,11 +79,11 @@ export function PaymentDialog({
                 </Button>
             </DialogTrigger>
             
-            <PaymentDialogContent 
-                selectedSeat={selectedSeat} 
-                flightData={flightData} 
-                isProcessing={isProcessing} 
-                handlePurchase={handlePurchase} 
+            <PaymentDialogContent
+                selectedSeat={selectedSeat}
+                flightData={flightData}
+                isProcessing={isPending}
+                handlePurchase={mutate}
                 setOpen={setOpen}
                 open={open}
             />
@@ -104,7 +100,7 @@ const PaymentDialogContent = ({
     selectedSeat: FlightSeat | null
     flightData: GetFlightByIdResponse
     isProcessing: boolean
-    handlePurchase: () => {},
+    handlePurchase: (id: number) => void,
     setOpen: Dispatch<SetStateAction<boolean>>
     open: boolean
 }) => {
@@ -116,7 +112,7 @@ const PaymentDialogContent = ({
         expiry: "",
     }})
 
-    const handleSubmit = cardForm.handleSubmit(() => {handlePurchase()})
+    const handleSubmit = cardForm.handleSubmit(() => {handlePurchase(selectedSeat!.id)})
 
 
     useLayoutEffect(() => {
@@ -233,7 +229,7 @@ const PaymentDialogContent = ({
                             </Button>
 
                             <Button 
-                                onClick={handlePurchase}
+                                onClick={() => handlePurchase(selectedSeat!.id)}
                                 disabled={isProcessing}
                                 className="flex-1"
                                 type="submit"

@@ -101,7 +101,7 @@ export function FlightsTable() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <Plane className="w-4 h-4 text-muted-foreground" />
+                                            <Plane className="w-6 h-6 text-black" />
                                             <span>{flight.plane.name}</span>
                                         </div>
                                     </TableCell>

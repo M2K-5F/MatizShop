@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Filter, Plane, ArrowRightLeft, Clock, Users } from "lucide-react"
-import { use, useEffect, useState } from "react"
+import { use, useEffect, useLayoutEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getApiService, useApiService } from "@/App"
 import { Flight, GetFlightsByCitiesResponse } from "@/interfaces/interfaces"
@@ -42,7 +42,10 @@ export default function FlightsPage() {
     }, [arrival, departure, date])
 
     
-    const flightsToRender = filteredFlights.length > 0 ? filteredFlights : data.flights || []
+    useLayoutEffect(() => {
+        setFilteredFlights(data.flights)
+    }, [data])
+
 
     if (isLoading) return (
         <Loader/>
@@ -76,14 +79,14 @@ export default function FlightsPage() {
                     <div className="lg:col-span-3">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold">Найдено рейсов: {filteredFlights.length} </h2>
+                                <h2 className="text-2xl font-bold">Найдено рейсов: {filteredFlights?.length} </h2>
                                 <p className="text-gray-600">Сортировка по: рекомендованным</p>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                        {flightsToRender.length > 0
-                            ?   flightsToRender.map((flight) => (
+                        {filteredFlights?.length > 0
+                            ?   filteredFlights.map((flight) => (
                                     <CreatedFlight flight={flight} key={flight.id} formatDate={formatDate}/>
                                 ))
                             :   <div>
