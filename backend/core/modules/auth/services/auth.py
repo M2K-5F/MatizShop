@@ -19,14 +19,14 @@ class AuthService():
         self.pwd_hasher = pwd_hasher
 
 
-    def register(self, phone_number: int, username: str, password: str, email_address: str):
+    async def register(self, phone_number: int, username: str, password: str, email_address: str):
             user_entity = User.create(
                 username, password,
                 email_address, phone_number, 
                 self.pwd_hasher
             )
 
-            created_user = self.user.get_or_create(
+            created_user = await self.user.get_or_create(
                 True, 
                 {
                     "password_hash": user_entity.password_hash,
@@ -36,7 +36,7 @@ class AuthService():
                 phone_number = user_entity.phone_number
             )
 
-            user_role = self.user_role.get_or_create(
+            user_role = await self.user_role.get_or_create(
                 True,
                 role = self.role.get_customer_role(),
                 user = created_user
@@ -46,31 +46,31 @@ class AuthService():
             return created_user
 
 
-    def get_user(self, phone_number: int):
-            user = self.user.get_or_none(
+    async def get_user(self, phone_number: int):
+            user = await self.user.get_or_none(
                 True,
                 phone_number = phone_number
             )
 
-            roles = self.user.get_user_roles(user)
+            roles = await self.role.get_user_roles(user)
             user.roles = roles
             return user
 
 
-    def get_user_by_id(self, id: int):
-        user = self.user.get_by_id(
+    async def get_user_by_id(self, id: int):
+        user = await self.user.get_by_id(
             id,
             True,
         )
 
-        roles = self.user.get_user_roles(user)
+        roles = await self.role.get_user_roles(user)
         user.roles = roles
         return user
 
 
 
-    def verify_password(self, phone_number: int, password: str):
-            user = self.user.get_or_none(
+    async def verify_password(self, phone_number: int, password: str):
+            user = await self.user.get_or_none(
                 True, 
                 phone_number = phone_number
             )
@@ -84,15 +84,15 @@ class AuthService():
             return False
     
 
-    def get_users_count(self):
-        return self.user.count()
+    async def get_users_count(self):
+        return await self.user.count()
     
 
-    def get_admin_list(self):
-        user_roles = self.user_role.select(role = self.role.get_admin_role())
+    async def get_admin_list(self):
+        user_roles = await self.user_role.select(role = self.role.get_admin_role())
         for ur in user_roles:
-            self.user_role.add_fields(ur)
-            ur.user.roles = self.user.get_user_roles(ur.user)
+            await self.user_role.add_fields(ur)
+            ur.user.roles = await self.role.get_user_roles(ur.user)
             
         admins = [ur.user.to_dict(exclude=['created_at', 'password_hash']) for ur in user_roles]
         return admins

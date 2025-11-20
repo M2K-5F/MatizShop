@@ -11,16 +11,27 @@ import granian.constants
 from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from infrastructure.common.models.SQLAlchemy.postgres_database import Database
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
 from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
 from restapi.modules.auth.controllers import auth_router
 from restapi.modules.flight.controllers import flight_router
 from restapi.modules.admin.controllers import admin_router
-from containers import DI
+from containers import di
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("STARTED")
+    database = Database()
+    await database.database_init('my_database')
+    container = di.DIContainer(database)
+    app.state.container = container
+    yield
+    await database.engine.dispose(True)
+
+app = FastAPI(lifespan=lifespan)
 
 app_router = APIRouter(prefix=API_PREFIX)
 app_router.include_router(auth_router)
@@ -30,8 +41,8 @@ app.include_router(app_router)
 
 
 
-add_refresh_middleware(app, DI.get_jwt_tokenizer())
-add_middleware(app, DI.get_auth_service(), DI.get_jwt_tokenizer())
+add_refresh_middleware(app, app.state.container.get_jwt_tokenizer())
+add_middleware(app, app.state.container.get_auth_service(), app.state.container.get_jwt_tokenizer())
 app.add_middleware(
         CORSMiddleware,
         allow_origins=ALLOWED_ORIGINS,
@@ -75,8 +86,5 @@ async def attrubute_exception_handler(request: Request, exc: AttributeError):
     )
 
 
-if __name__ == "__main__":  
-    selector = selectors.SelectSelector()
-    loop = asyncio.SelectorEventLoop(selector)
-    asyncio.set_event_loop(loop)
+if __name__ == "__main__":
     Granian("main:app", address="0.0.0.0", port=8000, interface=granian.constants.Interfaces('asgi')).serve()

@@ -1,4 +1,6 @@
+import asyncio
 from contextlib import asynccontextmanager, contextmanager
+import selectors
 from containers.di import di_container
 from fastapi import Depends, HTTPException, Request, status
 from core.modules.auth.entities.user import User
@@ -6,7 +8,7 @@ from core.modules.auth.entities.user import User
 
 @asynccontextmanager
 async def atomic_transaction():
-    with di_container.get_atomic_transaction()():
+    async with di_container.get_atomic_transaction():
         yield
 
 

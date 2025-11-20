@@ -1,3 +1,4 @@
+from re import A
 from fastapi import APIRouter, Body, Depends, Query
 
 from core.modules.flight.services.flight_service import FlightService
@@ -15,7 +16,7 @@ async def get_cities(
     service: FlightService = Depends(get_flight_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_cities_by_query(query)
+    return await service.get_cities_by_query(query)
 
 
 @flight_router.post('/search/flights')
@@ -24,7 +25,7 @@ async def get_flights_by_cities(
     service: FlightService = Depends(get_flight_service),
     txn = Depends(with_transaction),
 ):
-    return service.get_flights_by_cities(cities.departure_city_tag, cities.arrival_city_tag, cities.date)
+    return await service.get_flights_by_cities(cities.departure_city_tag, cities.arrival_city_tag, cities.date)
 
 
 @flight_router.get('/flight')
@@ -33,7 +34,7 @@ async def get_flight_by_id(
     service: FlightService = Depends(get_flight_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_flight_with_seats(flight_id)
+    return await service.get_flight_with_seats(flight_id)
 
 
 @flight_router.get('/user/flights')
@@ -41,7 +42,7 @@ async def get_user_flights(
     service: FlightService = Depends(get_flight_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_user_flights()
+    return await service.get_user_flights()
 
 
 @flight_router.post('/occupie/{seat_id}')
@@ -50,4 +51,4 @@ async def occupie_seat(
     service: FlightService = Depends(get_flight_service),
     txn = Depends(with_transaction),
 ):
-    return service.create_user_flight(seat_id)
+    return await service.create_user_flight(seat_id)

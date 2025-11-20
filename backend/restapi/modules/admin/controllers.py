@@ -14,7 +14,7 @@ async def get_summary_stats(
     service: AdminService = Depends(get_admin_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_summary_info()
+    return await service.get_summary_info()
 
 
 @admin_router.get('/users')
@@ -22,7 +22,7 @@ async def get_admins_info(
     service: AdminService = Depends(get_admin_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_user_info()
+    return await service.get_user_info()
 
 
 @admin_router.get('/flights')
@@ -30,7 +30,7 @@ async def get_flights_info(
     service: AdminService = Depends(get_admin_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_flights_info()
+    return await service.get_flights_info()
 
 
 @admin_router.get('/airports')
@@ -39,7 +39,7 @@ async def get_airports_by_city(
     service: AdminService = Depends(get_admin_service),
     txn = Depends(with_transaction)
 ):
-    return service.get_airports_by_city(tag)
+    return await service.get_airports_by_city(tag)
 
 
 @admin_router.post('/create_flight')
@@ -48,4 +48,4 @@ async def create_flight(
     service: AdminService = Depends(get_admin_service),
     txn = Depends(with_transaction)
 ):
-    return service.create_flight(flight_data)
+    return await service.create_flight(flight_data)

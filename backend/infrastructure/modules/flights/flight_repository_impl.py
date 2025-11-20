@@ -1,50 +1,49 @@
 from datetime import datetime
 from typing import List
-from infrastructure.common.models.peewee_models import Airport, City, Flight, FlightSeat, UserFlight
+from infrastructure.common.models.SQLAlchemy.sqlalchemy_models import Airport, City, Flight, FlightSeat, UserFlight
 from infrastructure.common.repositories.repository_impl import RepositoryImpl
 from core.modules.flight.entites.flight import UserFlight as UserFlightEntity
 from core.modules.flight.entites.flight import Flight as FlightEntity, FlightSeat as FlightSeatE
-from playhouse.shortcuts import model_to_dict
-from peewee import fn
 
 
 
 class FlightRepositoryImpl(RepositoryImpl[Flight, FlightEntity]): 
-    def __init__(self):
-        super().__init__(Flight, FlightEntity)
+    def __init__(self, session):
+        super().__init__(Flight, FlightEntity, session)
 
 
-    def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str, date: datetime):
-        DepartureAirport = Airport.alias()
-        ArrivalAirport = Airport.alias()
+    async def get_flights_by_cities(self, departure_city_tag: str, arrival_city_tag: str, date: datetime):
+        # DepartureAirport = Airport.alias()
+        # ArrivalAirport = Airport.alias()
         
-        query = (self.model
-            .select()
-            .join(DepartureAirport, on=(self.model.departure == DepartureAirport.id))
-            .join(ArrivalAirport, on=(self.model.arrival == ArrivalAirport.id))
-            .where(
-                DepartureAirport.city == departure_city_tag.upper(),
-                ArrivalAirport.city == arrival_city_tag.upper(),
-                self.model.departure_time ** f'%{date.date()}%'
-            )
-        )
+        # query = await (self.model
+        #     .select()
+        #     .join(DepartureAirport, on=(self.model.departure == DepartureAirport.id))
+        #     .join(ArrivalAirport, on=(self.model.arrival == ArrivalAirport.id))
+        #     .where(
+        #         DepartureAirport.city == departure_city_tag.upper(),
+        #         ArrivalAirport.city == arrival_city_tag.upper(),
+        #         self.model.departure_time ** f'%{date.date()}%'
+        #     )
+        # ).aio_execute(self.database)
         
-        return list(map(self._to_entity, query))
-
+        # return list(map(self._to_entity, query))
+        return []
 
 
 
 class FlightSeatRepositoryImpl(RepositoryImpl[FlightSeat, FlightSeatE]):
-    def __init__(self):
-        super().__init__(FlightSeat, FlightSeatE)
+    def __init__(self, session):
+        super().__init__(FlightSeat, FlightSeatE, session)
         
     
-    def get_tickets_list(self) -> List[FlightSeatE]:
-        return list(self.model.select().where(self.model.is_occupied == True))
+    async def get_tickets_list(self) -> List[FlightSeatE]:
+        # return list(await self.model.select().where(self.model.is_occupied == True).aio_execute(self.database))
+        return []
 
 
 
 
 class UserFlightRopositoryImpl(RepositoryImpl[UserFlight, UserFlightEntity]):
-    def __init__(self):
-        super().__init__(UserFlight, UserFlightEntity)
+    def __init__(self, session):
+        super().__init__(UserFlight, UserFlightEntity, session)

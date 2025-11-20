@@ -1,1 +1,0 @@
-from .di import di_container as DI

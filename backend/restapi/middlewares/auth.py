@@ -50,7 +50,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if user_id is None:
             return credentials_exception
         
-        current_user = self.auth_service.get_user_by_id(user_id)
+        current_user = await self.auth_service.get_user_by_id(user_id)
         if current_user is None:
             return credentials_exception
 
