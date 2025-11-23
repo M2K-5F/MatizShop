@@ -4,14 +4,10 @@ import selectors
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from granian import Granian
-import granian
-import granian.asgi
-import granian.constants
 from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from infrastructure.common.models.SQLAlchemy.postgres_database import Database
+from infrastructure.common.database.postgres_database import Database
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
 from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
@@ -23,13 +19,22 @@ from containers import di
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("STARTED")
-    database = Database()
-    await database.database_init('my_database')
+    database = Database(
+        name='postgres',
+        host='env',
+        port='env',
+        user='env',
+        password='env'
+    )
+    await database.database_init()
     container = di.DIContainer(database)
     app.state.container = container
+    print("WORKER STARTED!")
+    
     yield
+    app.state.container = None
     await database.engine.dispose(True)
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -39,10 +44,8 @@ app_router.include_router(flight_router)
 app_router.include_router(admin_router)
 app.include_router(app_router)
 
-
-
-add_refresh_middleware(app, app.state.container.get_jwt_tokenizer())
-add_middleware(app, app.state.container.get_auth_service(), app.state.container.get_jwt_tokenizer())
+add_refresh_middleware(app)
+add_middleware(app)
 app.add_middleware(
         CORSMiddleware,
         allow_origins=ALLOWED_ORIGINS,
@@ -51,7 +54,7 @@ app.add_middleware(
         allow_headers=["*"],
     )
 
-app.add_middleware(GZipMiddleware, minimum_size = 1000)
+# app.add_middleware(GZipMiddleware, minimum_size = 1000)
 
 
 @app.exception_handler(RequestValidationError)
@@ -84,7 +87,3 @@ async def attrubute_exception_handler(request: Request, exc: AttributeError):
             "type": "attribute_error"
         }
     )
-
-
-if __name__ == "__main__":
-    Granian("main:app", address="0.0.0.0", port=8000, interface=granian.constants.Interfaces('asgi')).serve()

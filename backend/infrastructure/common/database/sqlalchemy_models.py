@@ -1,30 +1,32 @@
 from datetime import datetime, timedelta
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Time, select
+from sqlalchemy import Column, Integer, Interval, String, DateTime, Boolean, ForeignKey, Time, select, orm
 from infrastructure.common.impls.password_hasher_impl import PasswordHasherImpl
-from infrastructure.common.models.SQLAlchemy.postgres_database import Database
+from infrastructure.common.database.postgres_database import Database
 
 
-class User(Database.Table):
+class UserModel(Database.Table):
     __tablename__ = 'users'
 
     username = Column(String(64))
     password_hash = Column(String)
     email_address = Column(String(128))
     phone_number = Column(String(11), unique=True, index=True)
+    
 
-
-class Role(Database.Table):
+class RoleModel(Database.Table):
     __tablename__ = "roles"
     
     name = Column(String, unique=True, index=True)
+    
 
-class UserRole(Database.Table):
+class UserRoleModel(Database.Table):
     __tablename__ = "user_roles"
     
     user_id = Column(Integer, ForeignKey("users.id"))
     role_id = Column(Integer, ForeignKey("roles.id"))
+    
 
-class City(Database.Table):
+class CityModel(Database.Table):
     __tablename__ = "cities"
     
     tag = Column(String(4), unique=True, index=True)
@@ -32,7 +34,7 @@ class City(Database.Table):
     country = Column(String)
 
 
-class Airport(Database.Table):
+class AirportModel(Database.Table):
     __tablename__ = "airports"
     
     code = Column(String)
@@ -40,7 +42,7 @@ class Airport(Database.Table):
     city_id = Column(Integer, ForeignKey("cities.id"))
 
 
-class Plane(Database.Table):
+class PlaneModel(Database.Table):
     __tablename__ = "planes"
     
     name = Column(String)
@@ -48,7 +50,7 @@ class Plane(Database.Table):
     economy_class_count = Column(Integer)
 
 
-class Seat(Database.Table):
+class SeatModel(Database.Table):
     __tablename__ = "seats"
     
     seat_class = Column(String)
@@ -57,7 +59,7 @@ class Seat(Database.Table):
     plane_id = Column(Integer, ForeignKey("planes.id"))
 
 
-class Flight(Database.Table):
+class FlightModel(Database.Table):
     __tablename__ = "flights"
     
     tag = Column(String)
@@ -65,14 +67,14 @@ class Flight(Database.Table):
     arrival_id = Column(Integer, ForeignKey("airports.id"))
     departure_time = Column(DateTime)
     arrival_time = Column(DateTime)
-    duration = Column(Time)
+    duration = Column(Interval)
     min_price = Column(Integer)
     seats_left = Column(Integer)
     plane_id = Column(Integer, ForeignKey("planes.id"))
     allowed_business = Column(Boolean, default=True)
     
 
-class FlightSeat(Database.Table):
+class FlightSeatModel(Database.Table):
     __tablename__ = "flight_seats"
     
     seat_id = Column(Integer, ForeignKey("seats.id"))
@@ -81,7 +83,7 @@ class FlightSeat(Database.Table):
     is_occupied = Column(Boolean, default=False)
     
 
-class UserFlight(Database.Table):
+class UserFlightModel(Database.Table):
     __tablename__ = "user_flights"
     
     flight_seat_id = Column(Integer, ForeignKey("flight_seats.id"))

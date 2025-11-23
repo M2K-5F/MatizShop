@@ -1,21 +1,21 @@
-from dataclasses import Field, asdict, field, fields
-from enum import auto
-from pyexpat import model
-import re
-from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, Union, get_type_hints, overload
+from dataclasses import Field
+from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, Union, overload
 
-from sqlalchemy import func
+from sqlalchemy import func, select, true
 from core.common.entities.entity import Entity
 from core.common.interfaces.repository import Repository
-from infrastructure.common.models.SQLAlchemy.sqlalchemy_models import *
+from infrastructure.common.database.postgres_database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 TModel = TypeVar('TModel', bound=Database.Table)
 TEntity = TypeVar('TEntity', bound=Entity)
+TCustomEntity = TypeVar('TCustomEntity', bound=Entity)
+
 
 class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
-    def __init__(self, model: Type[TModel], entity: Type[TEntity], session: AsyncSession):
+    def __init__(self, model: Type[TModel], entity: Type[TEntity], session: AsyncSession, custom_mapper: Optional[Dict[str, str]] = {}):
         self.model = model
+        self.mapper = custom_mapper
         self.entity = entity
         self.session = session
 
@@ -40,14 +40,19 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             if column.key not in filters and column.key[:-3] not in filters:
                 continue
 
-            value: Any
 
             if column.key.endswith('_id'):
                 value = filters[column.key[:-3]]
                 if isinstance(value, Entity):
                     value = value.id
+            
+            elif self.mapper and self.mapper[column.key]:
+                field = self.mapper[column.key]
+                value = filters[field]
+
             else:
                 value = filters[column.key]
+                
             converted_filters[column.key] = value   
 
         return converted_filters
@@ -60,21 +65,24 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             field = key.key
             if key.key.endswith("_id"):
                 field = key.key[:-3]
+            elif self.mapper and self.mapper[key.key]:
+                field = self.mapper[key.key]
 
             model_data[field] = value
         return(self.entity(**model_data))
     
-    
-    # def _to_model(self, entity: TEntity) -> TModel:
-    #     entity_data = asdict(entity)
-        
-    #     model_data = {}
-    #     for field_name in getattr(self.model, '_meta').fields.keys():
-    #         if field_name in entity_data:
-    #             model_data[field_name] = entity_data[field_name]
-        
-    #     return self.model(**model_data)
 
+    @staticmethod
+    def _to_custom_entity(model: Database.Table, custom_entity: Type[TCustomEntity]):
+        model_data = {}
+        for key in model.__table__.columns:
+            value = getattr(model, key.key)
+            field = key.key
+            if key.key.endswith("_id"):
+                field = key.key[:-3]
+
+            model_data[field] = value
+        return(custom_entity(**model_data))
 
 
     @overload
@@ -118,15 +126,19 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         instance = (await self.session.execute(select(self.model).filter_by(**filters))).scalar_one_or_none()
 
         if auto_error and not instance:
-            raise self._400_integrity
-        
-        elif auto_error and instance:
+            instance = self.model(**filters, **defaults_filters)
+            self.session.add(instance)
+            await self.session.flush()
+            await self.session.refresh(instance)
             return self._to_entity(instance)
+
+        elif auto_error and instance:
+            raise self._400_integrity
         
         elif not auto_error and not instance:
             instance = self.model(**filters, **defaults_filters)
             self.session.add(instance)
-            await self.session.commit()
+            await self.session.flush()
             await self.session.refresh(instance)
             return self._to_entity(instance), True
 
@@ -157,19 +169,19 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         filters = self._convert_filters(**kwargs)
         print(filters)
 
-        instance = (await self.session.execute(select(self.model).filter_by(**filters))).scalar_one_or_none()
+        instance = (await self.session.execute(select(self.model).filter_by(**filters))).scalars().all()
 
-        if not instance and not auto_error:
+        if not instance.__len__() and not auto_error:
             return None
 
-        elif not instance and auto_error:
+        elif not instance.__len__() and auto_error:
             raise self._400_does_not_exist
 
-        elif instance and auto_error:
-            return self._to_entity(instance)
+        elif instance.__len__() and auto_error:
+            return self._to_entity(instance[0])
         
-        elif instance and not auto_error:
-            return self._to_entity(instance)
+        elif instance.__len__() and not auto_error:
+            return self._to_entity(instance[0])
 
 
     async def select(self, **where) -> List[TEntity]:
@@ -180,19 +192,8 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
         return [self._to_entity(instance) for instance in query]
     
 
-    # async def select_with_prefetch(self, **where) -> List[TEntity]:
-    #     filters = self._convert_filters(**where)
-        
-    #     query = (await self.session.execute(select(self.model).filter_by(**filters))).scalars().all()
-
-    #     entities = [self._to_entity(instance) for instance in query]
-    #     for entity in entities:
-    #         await self.add_fields(entity)
-    #     return entities
-
-
     async def count(self, **kwargs) -> int:
-        query = (await self.session.execute(select(func.count(self.model.id)))).scalar_one()
+        query = (await self.session.execute(select(func.count(self.model.id)).filter_by(**kwargs))).scalar_one()
         return query
 
 
@@ -203,7 +204,7 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
             return False
         
         await self.session.delete(model)
-        await self.session.commit()
+        await self.session.flush()
         return True
 
 
@@ -226,14 +227,14 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
                 
                 setattr(instance, column.key, value)
             
-            await self.session.commit()
+            await self.session.flush()
 
             return self._to_entity(instance)
 
         raise self._404_not_fount
     
     
-    async def load_relations(self, entity: TEntity, mapper: Dict[Union[str, Field, Tuple[Union[str, Field]]], "Repository"]):
+    async def load_relations(self, entity: TEntity, mapper: Dict[str | Field[Any] | Tuple[str | Field[Any]], "Repository"]):
         for key, repo in mapper.items():
             if isinstance(key, Field):
                 value = await repo.get_by_id(getattr(entity, key.name), True)

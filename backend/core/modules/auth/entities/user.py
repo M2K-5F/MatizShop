@@ -7,7 +7,7 @@ from core.modules.auth.interfaces.password_hasher import PasswordHasher
 
 @dataclass
 class User(Entity):
-    roles: List[Literal['ADMIN', 'CUSTOMER']] = field(default_factory=list)
+    roles: List[Literal['ADMIN', 'CUSTOMER']] | List[str] = field(default_factory=list)
     username: str = ''
     password_hash: str = ''
     email_address: str = ''

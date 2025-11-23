@@ -4,27 +4,19 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from core.modules.auth.services.auth import AuthService
+from containers.di import DIContainer
 from restapi.config.path import PUBLIC_PATHS
-from restapi.token.tokenizer import JWTTokenizer
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    def __init__(
-        self, 
-        app,
-        auth_service: AuthService,
-        tokenizer: JWTTokenizer
-    ):
+    def __init__(self, app):
         super().__init__(app)
-        self.auth_service = auth_service
-        self.tokenizer = tokenizer
-
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
             return await call_next(request)
-
-
+        
+        container: DIContainer = request.app.state.container
+        
         cookie_key = 'access_token'
         token = request.cookies.get(cookie_key)
 
@@ -42,22 +34,34 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return unauthorized_exception
         
         try:
-            payload = self.tokenizer.decode(token=token)
+            tokenizer = container.get_jwt_tokenizer()
+            payload = tokenizer.decode(token=token)
         except:
             return credentials_exception
 
         user_id: int = payload.get("sub")
         if user_id is None:
             return credentials_exception
-        
-        current_user = await self.auth_service.get_user_by_id(user_id)
-        if current_user is None:
-            return credentials_exception
+            
+        async with container._database.atomic() as session:
+            try:
+                auth_service = container.get_auth_service(session)
+                current_user = await auth_service.get_user_by_id(user_id)
+
+                if current_user is None:
+                    await session.rollback()
+                    return credentials_exception
+                
+            except Exception as e:
+                await session.rollback()
+                return credentials_exception
 
         request.state.user = current_user
         request.state.payload = payload
 
-        return await call_next(request)
+        response = await call_next(request)
+        
+        return response
 
-def add_middleware(app: FastAPI, auth_service: AuthService, tokenizer: JWTTokenizer):
-    app.add_middleware(AuthMiddleware, auth_service=auth_service, tokenizer=tokenizer)
+def add_middleware(app: FastAPI):
+    app.add_middleware(AuthMiddleware)

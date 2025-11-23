@@ -5,13 +5,13 @@ from typing import Any, Dict, List, Optional
 
 @dataclass
 class Entity:
-    id: Optional[int]
+    id: int
     created_at: Optional[datetime]
 
     @classmethod 
     def base_create(cls, **kwargs):
         return cls(
-            id = None,
+            id = 0,
             created_at = None,
             **kwargs
         )

@@ -47,24 +47,12 @@ class AuthService():
 
 
     async def get_user(self, phone_number: int):
-            user = await self.user.get_or_none(
-                True,
-                phone_number = phone_number
-            )
-
-            roles = await self.role.get_user_roles(user)
-            user.roles = roles
-            return user
+        user = await self.user.get_by_number_with_roles(phone_number)
+        return user
 
 
-    async def get_user_by_id(self, id: int):
-        user = await self.user.get_by_id(
-            id,
-            True,
-        )
-
-        roles = await self.role.get_user_roles(user)
-        user.roles = roles
+    async def get_user_by_id(self, user_id: int):
+        user = await self.user.get_by_id_with_roles(user_id)
         return user
 
 
@@ -89,11 +77,5 @@ class AuthService():
     
 
     async def get_admin_list(self):
-        user_roles = await self.user_role.select(role = self.role.get_admin_role())
-        for ur in user_roles:
-            await self.user_role.add_fields(ur)
-            ur.user.roles = await self.role.get_user_roles(ur.user)
-            
-        admins = [ur.user.to_dict(exclude=['created_at', 'password_hash']) for ur in user_roles]
-        return admins
+        return await self.user.get_admins()
     

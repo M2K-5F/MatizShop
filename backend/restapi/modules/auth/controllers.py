@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from core.modules.auth.entities.user import User
 from core.modules.auth.interfaces.password_hasher import PasswordHasher
 from restapi.modules.auth.dependencies import get_auth_service
-from restapi.modules.common.dependencies import get_jwt_tokenizer, get_user_from_request, with_transaction
+from restapi.modules.common.dependencies import get_jwt_tokenizer, get_user_from_request
 from restapi.modules.auth.shemas import AuthUser, RegisterUser
 from core.modules.auth.services.auth import AuthService
 from restapi.token.tokenizer import JWTTokenizer
@@ -17,7 +17,6 @@ async def login(
     login_user: AuthUser = Body(),
     service: AuthService = Depends(get_auth_service),
     tokenizer: JWTTokenizer = Depends(get_jwt_tokenizer),
-    txn = Depends(with_transaction)
 ):
     try:
         is_password_verified = await service.verify_password(login_user.phone_number, login_user.password)
@@ -27,6 +26,9 @@ async def login(
         raise ValueError('uncorrect password')
     
     current_user = await service.get_user(login_user.phone_number)
+    if not current_user:
+        raise ValueError('uncorrect phone')
+
     expires_delta = timedelta(days=30) if login_user.remember else timedelta(minutes=15)
     now = datetime.now(timezone.utc)
     expires_at = now + expires_delta
@@ -54,7 +56,7 @@ async def login(
 async def users_me(
     current_user: User = Depends(get_user_from_request)
 ):
-    return JSONResponse(current_user.to_dict())
+    return current_user.to_dict(exclude=['created_at', 'password_hash'])
 
 
 @auth_router.post('/register')

@@ -1,16 +1,16 @@
 from typing import List, TypedDict
 
-class Airport(TypedDict):
+class AirportTestData(TypedDict):
     code: str
     name: str
 
-class City(TypedDict):
+class CityTestData(TypedDict):
     id: str
     name: str
-    airports: List[Airport]
+    airports: List[AirportTestData]
     country: str
 
-cities_data: List[City] = [
+cities_data: List[CityTestData] = [
     {
         "id": "MOW",
         "name": "Москва",

@@ -1,8 +1,10 @@
+from sqlalchemy import select
 from core.modules.auth.entities.role import Role
 from core.modules.auth.entities.user import User
-from infrastructure.common.repositories.repository_impl import RepositoryImpl
+from core.modules.auth.interfaces.user_role_repository import UserRoleRepository
+from infrastructure.common.database.sqlalchemy_models import RoleModel
+from infrastructure.common.impls.repository_impl import RepositoryImpl
 from sqlalchemy.ext.asyncio  import AsyncSession
-from infrastructure.common.models.SQLAlchemy.sqlalchemy_models import Role as RoleModel
 
 
 class RoleRepositoryImpl(RepositoryImpl[RoleModel, Role]):
@@ -20,8 +22,3 @@ class RoleRepositoryImpl(RepositoryImpl[RoleModel, Role]):
             True, 
             name = 'CUSTOMER'
         )
-    
-    async def get_user_roles(self, user: User):
-        return ['ADMIN']
-        # query = await self.model.select().join(UserRole).where(UserRole.user == user.id).aio_execute(self.database)
-        # return [role.name for role in query]

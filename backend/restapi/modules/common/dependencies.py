@@ -1,20 +1,23 @@
 import asyncio
 from contextlib import asynccontextmanager, contextmanager
-import selectors
-from containers.di import di_container
+from colorama import reinit
 from fastapi import Depends, HTTPException, Request, status
+from containers.di import DIContainer
 from core.modules.auth.entities.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
-@asynccontextmanager
-async def atomic_transaction():
-    async with di_container.get_atomic_transaction():
-        yield
+async def get_di_container(request: Request):
+    container: DIContainer = request.app.state.container
+    return container
 
 
-async def with_transaction():
-    async with atomic_transaction():
-        yield
+async def  get_db_session(request: Request):
+    container: DIContainer = request.app.state.container
+    database = container._database
+    
+    async with database.atomic() as session:
+        yield session
 
 
 async def get_user_from_request(request: Request) -> User:
@@ -33,9 +36,9 @@ async def is_admin(user: User = Depends(get_user_from_request)):
     return
 
 
-async def get_jwt_tokenizer():
-    return di_container.get_jwt_tokenizer()
+async def get_jwt_tokenizer(container: DIContainer = Depends(get_di_container)):
+    return container.get_jwt_tokenizer()
 
 
-async def get_pwd_hasher():
-    return di_container.get_hasher()
+async def get_pwd_hasher(container: DIContainer = Depends(get_di_container)):
+    return container.get_hasher()

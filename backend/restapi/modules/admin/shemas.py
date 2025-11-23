@@ -13,5 +13,5 @@ class CreateFlightForm(BaseModel):
     departure_time: datetime
     arrival_time: datetime
     plane_id: int
-    min_price: str
+    min_price: int
     allowed_business: bool

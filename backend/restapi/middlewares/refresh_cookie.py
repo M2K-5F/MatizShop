@@ -2,20 +2,23 @@ from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction, Requ
 from fastapi import FastAPI, Request, Response
 from datetime import datetime, timedelta, timezone
 
+from containers.di import DIContainer
 from restapi.token.tokenizer import JWTTokenizer
 
 
 class CookieRefreshMiddleware(BaseHTTPMiddleware):
     """Middelawe which verify token payload & returns new token with refresed expires time"""
 
-    def __init__(self, app, tokenizer: JWTTokenizer ) -> None:
+    def __init__(self, app) -> None:
         super().__init__(app)
-        self.tokenizer = tokenizer
 
     async def dispatch(self, request: Request, call_next) -> Response:
         if not hasattr(request.state, 'payload'):
             return await call_next(request)
-        config = self.tokenizer._jwt_config
+        
+        container: DIContainer = request.app.state.container
+        tokenizer = container.get_jwt_tokenizer()
+        config = tokenizer._jwt_config
 
             
         now = datetime.now(timezone.utc)
@@ -33,7 +36,7 @@ class CookieRefreshMiddleware(BaseHTTPMiddleware):
                 'exp': exp,
                 "iat": now
             }
-            token = self.tokenizer.encode(jwt_payload)
+            token = tokenizer.encode(jwt_payload)
             response.set_cookie(
                 key='access_token',
                 value=str(token),
@@ -45,5 +48,5 @@ class CookieRefreshMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def add_refresh_middleware(app: FastAPI, tokenizer: JWTTokenizer):
-    app.add_middleware(CookieRefreshMiddleware, tokenizer=tokenizer)
+def add_refresh_middleware(app: FastAPI):
+    app.add_middleware(CookieRefreshMiddleware)

@@ -1,8 +1,6 @@
 from core.modules.auth.entities.role import UserRole
-from core.modules.auth.entities.user import User
-from core.modules.auth.interfaces.user_repository import UserRepository
-from infrastructure.common.repositories.repository_impl import RepositoryImpl
-from infrastructure.common.models.SQLAlchemy.sqlalchemy_models import UserRole as UserRoleModel
+from infrastructure.common.database.sqlalchemy_models import UserRoleModel
+from infrastructure.common.impls.repository_impl import RepositoryImpl
 from sqlalchemy.ext.asyncio  import AsyncSession
 
 
