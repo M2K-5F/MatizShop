@@ -224,7 +224,10 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
                         value = value.id
                     
                 elif isinstance(column.type, DateTime):
-                    value = datetime.fromisoformat(getattr(entity, column.key))
+                    if isinstance(getattr(entity, column.key), str):
+                        value = datetime.fromisoformat(getattr(entity, column.key))
+                    else:
+                        value = getattr(entity, column.key)
                 else:
                     value = getattr(entity, column.key)
 

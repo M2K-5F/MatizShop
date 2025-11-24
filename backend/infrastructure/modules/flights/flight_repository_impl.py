@@ -116,11 +116,12 @@ class FlightRepositoryImpl(RepositoryImpl[FlightModel, Flight]):
         dep_city = orm.aliased(CityModel)
 
         SQL = (
-            select(FlightModel, arr_aip, arr_city, dep_aip, dep_city)
+            select(FlightModel, arr_aip, arr_city, dep_aip, dep_city, PlaneModel)
             .join(arr_aip, arr_aip.id == FlightModel.arrival_id)
             .join(dep_aip, dep_aip.id == FlightModel.departure_id)
             .join(arr_city, arr_city.id == arr_aip.city_id)
             .join(dep_city, dep_city.id == dep_aip.city_id)
+            .join(PlaneModel, PlaneModel.id == FlightModel.plane_id)
         )
 
         res = (await self.session.execute(SQL)).all()
@@ -131,8 +132,10 @@ class FlightRepositoryImpl(RepositoryImpl[FlightModel, Flight]):
             arrival_airport = self._to_custom_entity(row[1], Airport)
             departure_airport = self._to_custom_entity(row[3], Airport)
             flight = self._to_entity(row[0])
+            plane = self._to_custom_entity(row[5], Plane)
             arrival_airport.city = arrival_city
             departure_airport.city = departure_city
+            flight.plane = plane
             flight.departure = departure_airport
             flight.arrival = arrival_airport
             flights.append(flight)

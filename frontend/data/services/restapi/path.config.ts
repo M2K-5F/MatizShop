@@ -1,4 +1,4 @@
-const BaseURL = 'http://localhost:8000/api'
+const BaseURL = 'http://localhost/api'
 
 export const ApiEndpoints = {
     getCities: BaseURL + '/flights/search/cities',
