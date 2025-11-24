@@ -172,20 +172,32 @@ class UserFlightRopositoryImpl(RepositoryImpl[UserFlightModel, UserFlight]):
 
 
     async def get_user_flights(self, user_id: int | None):
-        query = (
-            select(UserFlightModel, FlightSeatModel, FlightModel)
+        departure_al = orm.aliased(AirportModel)
+        arrival_al = orm.aliased(AirportModel)
+
+        SQL = (
+            select(UserFlightModel, FlightSeatModel, FlightModel, arrival_al, departure_al, PlaneModel)
             .join(FlightSeatModel, UserFlightModel.flight_seat_id == FlightSeatModel.id)
             .join(FlightModel, FlightSeatModel.flight_id == FlightModel.id)
+            .join(arrival_al, arrival_al.id == FlightModel.arrival_id)
+            .join(departure_al, departure_al.id == FlightModel.departure_id)
+            .join(PlaneModel, PlaneModel.id == FlightModel.plane_id)
             .where(UserFlightModel.user_id == (user_id or 0))
         )
 
-        res = (await self.session.execute(query)).all()
+        res = (await self.session.execute(SQL)).all()
 
         flights: List[UserFlight] = []
 
         for row in res:
             flight = self._to_custom_entity(row[2], Flight)
             flight_seat = self._to_custom_entity(row[1], FlightSeat)
+            arrival = self._to_custom_entity(row[3], Airport)
+            departure = self._to_custom_entity(row[4], Airport)
+            plane = self._to_custom_entity(row[5], Plane)
+            flight.plane = plane
+            flight.arrival = arrival
+            flight.departure = departure
             flight_seat.flight = flight
             user_flight = self._to_entity(row[0])
             user_flight.flight_seat = flight_seat

@@ -14,7 +14,7 @@ class User(Entity):
     phone_number: str = ''
 
     @classmethod
-    def create(cls, username: str, password: str, email_address: str, phone_number: int, hasher: PasswordHasher):
+    def create(cls, username: str, password: str, email_address: str, phone_number: str, hasher: PasswordHasher):
         password_hash = hasher.hash(password)
         
         return replace(

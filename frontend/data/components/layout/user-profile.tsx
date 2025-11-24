@@ -87,34 +87,11 @@ export const UserProfile = () => {
 
                 <DropdownMenuItem 
                 className="cursor-pointer py-3"
-                //   onClick={onProfileClick}
-                >
-                    <User className="w-4 h-4 mr-2" />
-                    <span>Мой профиль</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem 
-                className="cursor-pointer py-3"
                 onClick={() => navigate('/user/tickets')}
                 >
                     <Plane className="w-4 h-4 mr-2" />
                     <span>Мои бронирования</span>
                 </DropdownMenuItem>
-
-                <DropdownMenuItem 
-                className="cursor-pointer py-3"
-                //   onClick={onSettingsClick}
-                >
-                    <Settings className="w-4 h-4 mr-2" />
-                    <span>Настройки</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem className="cursor-pointer py-3">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    <span>Способы оплаты</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
 
                 <DropdownMenuItem 
                 className="cursor-pointer py-3 text-red-600 focus:text-red-600"

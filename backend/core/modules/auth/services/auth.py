@@ -19,7 +19,7 @@ class AuthService():
         self.pwd_hasher = pwd_hasher
 
 
-    async def register(self, phone_number: int, username: str, password: str, email_address: str):
+    async def register(self, phone_number: str, username: str, password: str, email_address: str):
             user_entity = User.create(
                 username, password,
                 email_address, phone_number, 
@@ -38,7 +38,7 @@ class AuthService():
 
             user_role = await self.user_role.get_or_create(
                 True,
-                role = self.role.get_customer_role(),
+                role = await self.role.get_customer_role(),
                 user = created_user
             )
             created_user.roles = ['CUSTOMER']
@@ -46,7 +46,7 @@ class AuthService():
             return created_user
 
 
-    async def get_user(self, phone_number: int):
+    async def get_user(self, phone_number: str):
         user = await self.user.get_by_number_with_roles(phone_number)
         return user
 
@@ -57,12 +57,11 @@ class AuthService():
 
 
 
-    async def verify_password(self, phone_number: int, password: str):
+    async def verify_password(self, phone_number: str, password: str):
             user = await self.user.get_or_none(
                 True, 
                 phone_number = phone_number
             )
-
             if self.pwd_hasher.verify(
                 password,
                 user.password_hash

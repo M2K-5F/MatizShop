@@ -47,8 +47,8 @@ export default function MyTicketsPage() {
   }
 
   const formatDuration = (duration: string) => {
-    const [hours, minutes] = duration.split(':')
-    return `${hours}ч ${minutes}м`
+    const hours = parseInt(duration) / 60 / 60
+    return `${hours}ч`
   }
 
 
@@ -65,7 +65,6 @@ export default function MyTicketsPage() {
 
   return (
     <div className="min-h-screen gradient-to-br from-slate-50 to-blue-50/30">
-      {/* Hero Section */}
       <div 
         className="relative h-56 bg-cover bg-center"
         style={{ backgroundImage: "url('/airplane-tickets.jpg')" }}
@@ -79,10 +78,7 @@ export default function MyTicketsPage() {
             <p className="text-lg text-blue-100">
               Управляйте своими бронированиями и поездками
             </p>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-            <QrCode className="w-8 h-8 text-white" />
-          </div>
+          </div>  
         </div>
       </div>
 
@@ -99,7 +95,6 @@ export default function MyTicketsPage() {
                     return (
                       <Card key={ticket.id} className="hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
                         <CardContent className="p-6">
-                          {/* Заголовок с статусом */}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
@@ -120,9 +115,7 @@ export default function MyTicketsPage() {
                             </div>
                           </div>
 
-                          {/* Информация о рейсе */}
                           <div className="flex items-center justify-between mb-6">
-                            {/* Вылет */}
                             <div className="text-center flex-1">
                               <div className="text-2xl font-bold text-gray-900">
                                 {formatTime(flight.departure_time)}
@@ -133,7 +126,6 @@ export default function MyTicketsPage() {
                               <div className="text-xs text-gray-500">{flight.departure.name}</div>
                             </div>
 
-                            {/* Маршрут */}
                             <div className="flex-1 px-6">
                               <div className="flex items-center justify-center gap-2 mb-2">
                                 <Clock className="w-4 h-4 text-gray-400" />
@@ -151,7 +143,6 @@ export default function MyTicketsPage() {
                               </div>
                             </div>
 
-                            {/* Прилет */}
                             <div className="text-center flex-1">
                               <div className="text-2xl font-bold text-gray-900">
                                 {formatTime(flight.arrival_time)}
@@ -163,7 +154,6 @@ export default function MyTicketsPage() {
                             </div>
                           </div>
 
-                          {/* Детали места и пассажира */}
                           <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                             <div className="space-y-2">
                               <div className="flex items-center gap-4 text-sm">
@@ -181,15 +171,15 @@ export default function MyTicketsPage() {
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm" className="gap-2">
+                              <Button variant="outline" disabled size="sm" className="gap-2">
                                 <Eye className="w-4 h-4" />
                                 Детали
                               </Button>
-                              <Button onClick={() => {}} variant="outline" size="sm" className="gap-2">
+                              <Button onClick={() => {}} disabled variant="outline" size="sm" className="gap-2">
                                 <Download className="w-4 h-4" />
                                 PDF
                               </Button>
-                              <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700">
+                              <Button size="sm" disabled className="gap-2 bg-blue-600 hover:bg-blue-700">
                                 <Share2 className="w-4 h-4" />
                                 Поделиться
                               </Button>
@@ -203,7 +193,6 @@ export default function MyTicketsPage() {
             }
           </div>
 
-          {/* Информационный баннер */}
           <Card className="mt-8 gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">

@@ -3,7 +3,7 @@ from validators import email
 
 
 class User(BaseModel):
-    phone_number: int
+    phone_number: str
     password: str
 
 class AuthUser(User):

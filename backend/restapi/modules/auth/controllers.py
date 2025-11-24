@@ -20,8 +20,8 @@ async def login(
 ):
     try:
         is_password_verified = await service.verify_password(login_user.phone_number, login_user.password)
-    except:
-        raise ValueError('uncorrect phone')
+    except Exception as e:
+        raise ValueError(e)
     if not is_password_verified:
         raise ValueError('uncorrect password')
     
@@ -72,7 +72,7 @@ async def register(
     )).to_dict()
 
 
-@auth_router.get('/logout')
+@auth_router.delete('/logout')
 async def logout():
     response = JSONResponse({
         "detail": "Successfull logout"
