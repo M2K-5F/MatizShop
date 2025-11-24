@@ -9,4 +9,4 @@ COPY ./ ./
 
 EXPOSE 8000
 
-CMD [ "granian", "main:app", "--host", "0.0.0.0", "--port", "8000", "--interface", "asgi", "--workers", "4", "--loop", "uvloop", "--threads", "4" ]
+CMD [ "granian", "main:app", "--host", "0.0.0.0", "--port", "8000", "--interface", "asgi", "--workers", "8", "--loop", "uvloop", "--threads", "4" ]

@@ -1,7 +1,8 @@
 from dataclasses import Field
+from datetime import datetime
 from typing import Literal, TypeVar, Generic, List, Optional, Type, Any, Dict, Tuple, Union, overload
 
-from sqlalchemy import func, select, true
+from sqlalchemy import DATETIME, DateTime, func, select, true
 from core.common.entities.entity import Entity
 from core.common.interfaces.repository import Repository
 from infrastructure.common.database.postgres_database import Database
@@ -222,9 +223,11 @@ class RepositoryImpl(Generic[TModel, TEntity], Repository[TEntity]):
                     if isinstance(value, Entity):
                         value = value.id
                     
+                elif isinstance(column.type, DateTime):
+                    value = datetime.fromisoformat(getattr(entity, column.key))
                 else:
                     value = getattr(entity, column.key)
-                
+
                 setattr(instance, column.key, value)
             
             await self.session.flush()

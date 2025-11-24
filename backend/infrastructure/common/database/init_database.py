@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from infrastructure.common.database.data import test_city_data
 from infrastructure.common.impls.password_hasher_impl import PasswordHasherImpl
 from infrastructure.common.database.postgres_database import Database
+from infrastructure.common.redis.redis_database import RedisDatabase
 from infrastructure.modules.auth.role_repository_impl import RoleRepositoryImpl
 from infrastructure.modules.auth.user_reposirory_impl import UserRepositoryImpl
 from infrastructure.modules.auth.user_role_repository_impl import UserRoleRepositoryImpl
@@ -20,12 +21,14 @@ async def main():
     )
     await database.database_init()
 
+    redis = RedisDatabase()
+
     async with database.engine.begin() as conn:
         await conn.run_sync(Database.Table.metadata.create_all)
 
     async with database.atomic() as session:
         role_repo = RoleRepositoryImpl(session)
-        user_repo = UserRepositoryImpl(session)
+        user_repo = UserRepositoryImpl(session, redis)
         user_role_repo = UserRoleRepositoryImpl(session)
         city_repo = CityRepositoryImpl(session)
         airport_repo = AirportRepositoryImpl(session)
@@ -43,7 +46,7 @@ async def main():
             defaults= {
                 "password_hash": PasswordHasherImpl.hash('12345'),
                 "username": 'admin',
-                "email_address": 'psina@pisos.kpk'
+                "email_address": 'admin@admin.kpk'
             },
             phone_number = '88001007393',
         )

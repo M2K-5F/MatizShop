@@ -47,9 +47,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         redis: RedisDatabase = request.app.state.redis
         redis_user = await redis.get_entity(user_id, User)
+        
         if redis_user:
             current_user = redis_user
-            print("from redis")
         else:
             async with container._database.atomic() as session:
                 try:

@@ -51,6 +51,7 @@ class FlightService(Service):
 
     async def get_flight_with_seats(self, flight_id: int):
         flight, flight_seats = await self.flight_repo.get_flight_with_seats(flight_id)
+        await self.user_repo.save(self.current_user)
         
         return {"flight": flight, "seats": flight_seats}
     
