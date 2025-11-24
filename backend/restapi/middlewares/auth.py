@@ -5,6 +5,8 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.responses import Response
 
 from containers.di import DIContainer
+from core.modules.auth.entities.user import User
+from infrastructure.common.redis.redis_database import RedisDatabase
 from restapi.config.path import PUBLIC_PATHS
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -42,19 +44,25 @@ class AuthMiddleware(BaseHTTPMiddleware):
         user_id: int = payload.get("sub")
         if user_id is None:
             return credentials_exception
-            
-        async with container._database.atomic() as session:
-            try:
-                auth_service = container.get_auth_service(session)
-                current_user = await auth_service.get_user_by_id(user_id)
+        
+        redis: RedisDatabase = request.app.state.redis
+        redis_user = await redis.get_entity(user_id, User)
+        if redis_user:
+            current_user = redis_user
+            print("from redis")
+        else:
+            async with container._database.atomic() as session:
+                try:
+                    auth_service = container.get_auth_service(session, request.app.state.redis)
+                    current_user = await auth_service.get_user_by_id(user_id)
 
-                if current_user is None:
+                    if current_user is None:
+                        await session.rollback()
+                        return credentials_exception
+                    
+                except Exception as e:
                     await session.rollback()
                     return credentials_exception
-                
-            except Exception as e:
-                await session.rollback()
-                return credentials_exception
 
         request.state.user = current_user
         request.state.payload = payload

@@ -29,21 +29,21 @@ class DIContainer():
         self._hasher = PasswordHasherImpl()
         self._tokenizer = JWTTokenizer(AuthJWT())
 
-    def get_auth_service(self, session):
+    def get_auth_service(self, session, redis):
         return AuthService(
-            UserRepositoryImpl(session),
+            UserRepositoryImpl(session, redis),
             RoleRepositoryImpl(session),
             UserRoleRepositoryImpl(session),
             self._hasher
         )
     
-    def get_flight_service(self, session, current_user: User):
+    def get_flight_service(self, session, current_user: User, redis):
         return FlightService(
             FlightRepositoryImpl(session),
             CityRepositoryImpl(session),
             AirportRepositoryImpl(session),
             UserFlightRopositoryImpl(session),
-            UserRepositoryImpl(session),
+            UserRepositoryImpl(session, redis),
             FlightSeatRepositoryImpl(session),
             current_user, 
             PlaneRopositoryImpl(session),
@@ -51,10 +51,10 @@ class DIContainer():
         )
     
 
-    def get_admin_service(self, session, current_user: User):
+    def get_admin_service(self, session, current_user: User, redis):
         return AdminService(
-            self.get_auth_service(session),
-            self.get_flight_service(session, current_user)
+            self.get_auth_service(session, redis),
+            self.get_flight_service(session, current_user, redis)
         )
 
     @singleton

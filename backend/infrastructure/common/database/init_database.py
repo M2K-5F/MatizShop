@@ -23,7 +23,7 @@ async def main():
     async with database.engine.begin() as conn:
         await conn.run_sync(Database.Table.metadata.create_all)
 
-    async with database.get_session() as session:
+    async with database.atomic() as session:
         role_repo = RoleRepositoryImpl(session)
         user_repo = UserRepositoryImpl(session)
         user_role_repo = UserRoleRepositoryImpl(session)

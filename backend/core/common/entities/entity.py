@@ -18,7 +18,7 @@ class Entity:
 
     
 
-    def to_dict(self, nesting: int = 1, exclude: List[str] = ['created_at']) -> Dict[str, Any]:
+    def to_dict(self, nesting: int = 1, exclude: List[str] = []) -> Dict[str, Any]:
         field_dict = {}
         for field in fields(self):
             if field.name in exclude:

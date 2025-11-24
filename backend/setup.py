@@ -16,6 +16,7 @@ setup(
         "cryptography==46.0.3",
         "sqlalchemy==2.0.44",
         "dotenv==0.9.9",
-        "asyncpg==0.30.0"
+        "asyncpg==0.30.0",
+        "redis==7.1.0"
     ]
 )

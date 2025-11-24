@@ -7,12 +7,20 @@ from infrastructure.common.database.sqlalchemy_models import RoleModel, UserMode
 from infrastructure.common.impls.repository_impl import RepositoryImpl
 from sqlalchemy.ext.asyncio  import AsyncSession
 
+from infrastructure.common.redis.redis_database import RedisDatabase
+
 
 class UserRepositoryImpl(RepositoryImpl[UserModel, User]):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, redis: RedisDatabase):
         super().__init__(UserModel, User, session)
+        self.redis = redis
 
     async def get_by_id_with_roles(self, user_id: int) -> Optional[User]:
+        print('user')
+        redis_user = await self.redis.get_entity(user_id, User)
+        if redis_user:
+            return redis_user
+        
 
         query = (
             select(UserModel, func.array_agg(RoleModel.name).label('roles'))
@@ -27,6 +35,8 @@ class UserRepositoryImpl(RepositoryImpl[UserModel, User]):
         
         usr = self._to_entity(res[0])
         usr.roles = res.roles
+
+        await self.redis.set_entity(usr)
         
         return usr
     
@@ -70,3 +80,8 @@ class UserRepositoryImpl(RepositoryImpl[UserModel, User]):
             admins.append(user)
         
         return admins
+    
+
+    async def save(self, entity: User):
+        await self.redis.set_entity(entity)
+        return await super().save(entity)

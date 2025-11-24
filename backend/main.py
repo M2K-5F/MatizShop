@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from infrastructure.common.database.postgres_database import Database
+from infrastructure.common.redis.redis_database import RedisDatabase
 from restapi.config.path import ALLOWED_ORIGINS, API_PREFIX
 from restapi.middlewares.auth import add_middleware
 from restapi.middlewares.refresh_cookie import add_refresh_middleware
@@ -27,8 +28,15 @@ async def lifespan(app: FastAPI):
         password='env'
     )
     await database.database_init()
+    print('Database inited')
     container = di.DIContainer(database)
     app.state.container = container
+    app.state.redis = RedisDatabase()
+    redis = RedisDatabase()
+    app.state.redis = redis
+    
+    print("Redis inited")
+
     print("WORKER STARTED!")
     
     yield

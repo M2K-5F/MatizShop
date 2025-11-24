@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
 import asyncpg
+from dotenv import load_dotenv
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker, AsyncEngine
 from sqlalchemy.orm import DeclarativeBase
-from dotenv import dotenv_values, load_dotenv
 import os
 
 
@@ -14,22 +14,18 @@ class Database():
 
     def __init__(self, name: str, host: str = 'env', port: str = 'env', user: str = 'env', password: str = 'env', max_connections: int = 12, max_overflow: int = 4):
         try:
-            self.env = dotenv_values()
-            self.user = self.env['DB_USER'] if user == 'env' else user
-            self.host = self.env['DB_HOST'] if host == 'env' else host
-            self.port = self.env['DB_PORT'] if port == 'env' else port
-            self.password = self.env['DB_PASSWORD'] if password == 'env' else password
+            load_dotenv()
+            self.user = os.environ['DB_USER'] if user == 'env' else user
+            self.host = os.environ['DB_HOST'] if host == 'env' else host
+            self.port = os.environ['DB_PORT'] if port == 'env' else port
+            self.password = os.environ['DB_PASSWORD'] if password == 'env' else password
             self.name = name
-            self.max_conn = int(str(self.env.get("MAX_CONNECTIONS", max_connections)))
-            self.max_overflow = int(str(self.env.get("MAX_OVERFLOW", max_overflow)))
+            self.max_conn = int(os.environ.get("MAX_CONNECTIONS", max_connections))
+            self.max_overflow = int(os.environ.get("MAX_OVERFLOW", max_overflow))
+            print(self.host)
             
         except:
-            if (name == 'env' or
-                host == 'env' or 
-                port == 'env' or
-                user == 'env' or
-                password == 'env'
-            ):
+            if any(param == 'env' for param in [host, port, user, password]):
                 raise ValueError('Error loading dotenv')
 
             else:

@@ -14,6 +14,45 @@ services:
       - "postgres"
       - "-c"
       - "max_connections=200"
-      
+
+
+  server:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file: ./backend/.env
+    environment:
+      - DB_HOST=postgres_db
+      - DB_PORT=5432       
+      - REDIS_PORT=6379
+      - REDIS_HOST=cache_server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres_db
+
+
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on: 
+      - server
+
+
+  cache_server:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+
 volumes:
   db_storage:
+
+  redis_data:

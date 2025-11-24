@@ -20,6 +20,11 @@ async def  get_db_session(request: Request):
         yield session
 
 
+async def get_redis_client(request: Request):
+    redis = request.app.state.redis
+    return redis
+
+
 async def get_user_from_request(request: Request) -> User:
     return request.state.user
 
